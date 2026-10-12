@@ -4,6 +4,9 @@
 
 一张表格进去，一堆带样式的二维码出来。**全程在你自己的浏览器里完成，不联网、不上传。**
 
+[![在线使用](https://img.shields.io/badge/🚀_在线使用-立即打开-2f6bff?style=for-the-badge)](https://locallabstide.github.io/batch-qrcode-html/)
+[![License](https://img.shields.io/badge/license-MIT-16a34a?style=for-the-badge)](LICENSE)
+
 > 🚀 **在线直接用**：https://locallabstide.github.io/batch-qrcode-html/
 
 ---
