@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户手册 · 二维码批量生成工具 Ver 1.0</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#fff; --line:#e3e6ec; --text:#1f2430; --sub:#6b7280;
+    --accent:#2f6bff; --accent-dark:#1f4fd8; --ok:#16a34a; --warn:#d97706; --danger:#dc2626;
+    --code-bg:#f3f5f9;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Segoe UI","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:15px; line-height:1.8;
+  }
+  .page{max-width:900px;margin:0 auto;padding:32px 24px 80px;}
+
+  .hero{
+    background:linear-gradient(135deg,#2f6bff,#5b8cff);
+    color:#fff;border-radius:16px;padding:34px 32px;margin-bottom:28px;
+    box-shadow:0 10px 30px rgba(47,107,255,.22);
+  }
+  .hero h1{margin:0 0 8px;font-size:26px;line-height:1.35;}
+  .hero .sub{opacity:.92;font-size:14px;}
+  .hero .meta{margin-top:16px;font-size:13px;opacity:.95;line-height:1.9;}
+  .hero .meta a{color:#fff;text-decoration:underline;}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:22px 26px;margin-bottom:20px;
+  }
+  h2{
+    font-size:19px;margin:0 0 14px;padding-bottom:10px;
+    border-bottom:2px solid #eef2ff;display:flex;align-items:center;gap:10px;
+  }
+  h2 .n{
+    width:26px;height:26px;border-radius:8px;background:var(--accent);color:#fff;
+    display:inline-flex;align-items:center;justify-content:center;font-size:14px;flex:none;
+  }
+  h3{font-size:16px;margin:22px 0 10px;color:var(--accent-dark);}
+  h4{font-size:14.5px;margin:16px 0 8px;}
+  p{margin:9px 0;}
+  ul,ol{margin:9px 0;padding-left:24px;}
+  li{margin:5px 0;}
+  a{color:var(--accent);}
+  code{
+    background:var(--code-bg);border:1px solid var(--line);border-radius:5px;
+    padding:1px 6px;font-family:Consolas,"Courier New",monospace;font-size:13.5px;color:#b8295b;
+  }
+  pre{
+    background:#1f2430;color:#e6e9f0;border-radius:10px;padding:14px 16px;
+    overflow-x:auto;font-size:13.5px;line-height:1.65;
+    font-family:Consolas,"Courier New",monospace;margin:10px 0;
+  }
+  pre code{background:none;border:none;color:inherit;padding:0;}
+
+  .quick{
+    background:#f0f7ff;border:1px solid #cfe0ff;border-left:4px solid var(--accent);
+    border-radius:10px;padding:14px 18px;margin:14px 0;
+  }
+  .quick b{color:var(--accent-dark);}
+  .tip{background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid var(--ok);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:14px;}
+  .warn{background:#fffbeb;border:1px solid #fde68a;border-left:4px solid var(--warn);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:14px;}
+  .danger{background:#fef2f2;border:1px solid #fecaca;border-left:4px solid var(--danger);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:14px;}
+
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+  th{background:#f7f9fc;font-weight:600;white-space:nowrap;}
+  tbody tr:nth-child(even){background:#fcfdff;}
+
+  .step{
+    display:flex;gap:14px;margin:16px 0;padding:14px 16px;
+    background:#fbfcfe;border:1px solid var(--line);border-radius:10px;
+  }
+  .step .idx{
+    width:30px;height:30px;flex:none;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;
+  }
+  .step .body{flex:1;min-width:0;}
+  .step .body h4{margin:2px 0 6px;font-size:15px;}
+  .step .body p:last-child{margin-bottom:0;}
+
+  .toc{
+    background:#fbfcfe;border:1px solid var(--line);border-radius:12px;padding:16px 22px;margin-bottom:22px;
+  }
+  .toc h3{margin:0 0 10px;font-size:15px;color:var(--text);}
+  .toc ol{margin:0;padding-left:22px;columns:2;column-gap:32px;}
+  .toc li{margin:4px 0;font-size:14px;}
+  @media(max-width:640px){.toc ol{columns:1;}}
+
+  .kbd{
+    display:inline-block;background:#fff;border:1px solid #c8d0dd;border-bottom-width:2px;
+    border-radius:5px;padding:0 7px;font-size:12.5px;font-family:inherit;color:var(--text);
+  }
+  .badge{display:inline-block;background:#eef3ff;color:var(--accent);border-radius:6px;padding:1px 8px;font-size:12.5px;font-weight:600;}
+
+  .ui{
+    display:inline-block;background:#eef3ff;border:1px solid #cfe0ff;border-radius:6px;
+    padding:0 8px;font-size:13.5px;color:var(--accent-dark);font-weight:600;white-space:nowrap;
+  }
+
+  .footer{
+    margin-top:36px;padding-top:18px;border-top:1px solid var(--line);
+    text-align:center;font-size:13px;color:var(--sub);line-height:2;
+  }
+  .footer a{color:var(--accent);text-decoration:none;}
+  .footer a:hover{text-decoration:underline;}
+  .footer .ver{color:var(--accent);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <h1>二维码批量生成工具 · 用户手册</h1>
+    <div class="sub">一张表格进去，一堆带样式的二维码出来 —— 全程本地、不联网</div>
+
+    <div class="nav" style="margin-top:18px;display:flex;flex-wrap:wrap;gap:10px;">
+      <a href="index.html" style="color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);border-radius:8px;padding:6px 15px;font-size:14px;">← 返回首页</a>
+      <a href="app.html" style="color:#1f4fd8;text-decoration:none;background:#fff;border-radius:8px;padding:6px 15px;font-size:14px;font-weight:600;">▶ 打开工具</a>
+      <a href="dev-guide.html" style="color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);border-radius:8px;padding:6px 15px;font-size:14px;">开发者手册 →</a>
+    </div>
+    <div class="meta">
+      版本：<b>Ver 1.0</b>　|　全程本地处理，数据不上传互联网　|　适用浏览器：Chrome / Edge<br>
+      E-mail：<a href="mailto:liyulai@qq.com">liyulai@qq.com</a>
+    </div>
+  </div>
+
+  <div class="toc">
+    <h3>📖 目录</h3>
+    <ol>
+      <li><a href="#s1">这个工具是干嘛的</a></li>
+      <li><a href="#s2">30 秒快速上手</a></li>
+      <li><a href="#s3">界面导览：屏幕上有哪些东西</a></li>
+      <li><a href="#s4">准备数据：两列怎么写</a></li>
+      <li><a href="#s5">导入 Excel / CSV / 文本</a></li>
+      <li><a href="#s6">数据整理：替换、去重、去空格</a></li>
+      <li><a href="#s7">调样式：尺寸、颜色、圆点</a></li>
+      <li><a href="#s8">加 LOGO 与展示文字</a></li>
+      <li><a href="#s9">选输出格式与命名规则</a></li>
+      <li><a href="#s10">导出：单张 / 批量 ZIP</a></li>
+      <li><a href="#s11">怎样扫得出来：容错率与实测</a></li>
+      <li><a href="#s12">常见问题与排错</a></li>
+      <li><a href="#s13">术语小词典</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="s1">
+    <h2><span class="n">1</span>这个工具是干嘛的</h2>
+    <p>想象这个场景：老板给你一张 Excel，里面有 <b>200 行</b>数据 —— 每行是一个门店名 + 一个链接。要你为每一行做一张二维码图片，图片文件还得按门店名命名，方便发给各个店长。</p>
+    <p>一个个去在线网站生成、下载、改名，200 张能让你干一下午，而且数据还得上传到别人服务器。</p>
+    <p><b>这个工具解决的问题就是：</b>你把这张表格丢进去，它一次性生成 200 张二维码（带颜色、带 LOGO、带门店名文字），自动按门店名命名，打包成一个 ZIP 给你下载。整个过程几秒钟，而且<b>数据从头到尾没离开你的电脑</b>。</p>
+
+    <div class="quick">
+      <b>核心能力一句话总结：</b>
+      <ul style="margin-bottom:0;">
+        <li><b>数据进，二维码出</b> —— 表格里多少行，就生成多少张，一一对应</li>
+        <li>支持 <b>两列</b>：第一列是「图片名称」（也是文件名 + 可作显示文字），第二列是「二维码内容」</li>
+        <li>数据来源：<b>手动粘贴</b> / <b>导入 Excel·CSV·文本</b></li>
+        <li>样式可调：<b>尺寸、静区、前景背景色、四档容错率、圆点/圆角/方形</b></li>
+        <li>可加 <b>LOGO</b>（≤25%）与 <b>上/下展示文字</b></li>
+        <li>导出 <b>PNG / JPG / SVG</b>，还能<b>一键打包成 ZIP</b></li>
+        <li>所有处理都在<b>你自己的电脑浏览器里完成，绝对不上传</b></li>
+      </ul>
+    </div>
+
+    <h3>它不做什么（避免误解）</h3>
+    <ul>
+      <li>❌ 不提供在线服务 —— 它是一个本地 HTML 文件，双击打开就能用，断网也行</li>
+      <li>❌ 不帮你改二维码内容 —— 二维码内容一旦生成<b>就固定了，不可修改</b>，要改就重新生成</li>
+      <li>❌ 不做 A4 排版打印 —— 那是另一个独立工具的事，本项目专注「数据 → 二维码」</li>
+    </ul>
+
+    <h3>和「A4 排版工具」的区别</h3>
+    <table>
+      <thead><tr><th>工具</th><th>输入</th><th>输出</th></tr></thead>
+      <tbody>
+        <tr><td><b>本工具</b>（批量生成）</td><td>一行行<b>数据</b>（门店名、链接…）</td><td>一张张<b>二维码图片</b> + ZIP</td></tr>
+        <tr><td>A4 排版工具</td><td>一堆现成的<b>二维码图片</b></td><td>每张铺满一整页 <b>A4</b> 的图片 + ZIP</td></tr>
+      </tbody>
+    </table>
+    <p>两个可以配合用：先用本工具生成二维码图片，再用 A4 工具排版打印。</p>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="s2">
+    <h2><span class="n">2</span>30 秒快速上手</h2>
+    <p>不想看解释、只想赶紧出货，看这一段就够了：</p>
+
+    <div class="step">
+      <div class="idx">1</div>
+      <div class="body">
+        <h4>打开工具</h4>
+        <p>双击 <code>app.html</code>，用 <b>Chrome 或 Edge</b> 打开（推荐 Chrome）。无需安装、无需服务器。</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="idx">2</div>
+      <div class="body">
+        <h4>填数据（或导入）</h4>
+        <p>在左侧「二维码数据」框里按 <code>名称, 内容</code> 一行一条粘贴；或点 <span class="ui">导入 Excel / CSV</span>。第一次用建议先点 <span class="ui">下载模板</span> 拿一份规范 CSV。</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="idx">3</div>
+      <div class="body">
+        <h4>（可选）调样式</h4>
+        <p>右边「样式与尺寸」里可以改尺寸、颜色、容错率；需要的话展开「LOGO 设置」「展示文字」加上去。不改也能直接用。</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="idx">4</div>
+      <div class="body">
+        <h4>点「批量导出（打包为 ZIP）」</h4>
+        <p>等进度条走完，浏览器自动下载一个 <b>.zip</b>。解压后就是一堆按名称命名的二维码图片。</p>
+      </div>
+    </div>
+
+    <div class="tip">
+      <b>只要单个？</b> 用预览区的 <span class="ui">← 上一张</span> / <span class="ui">下一张 →</span> 翻到想要的那张，点 <span class="ui">下载当前这张</span> 即可。
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="s3">
+    <h2><span class="n">3</span>界面导览：屏幕上有哪些东西</h2>
+    <p>打开后界面分左右两栏。左栏是「数据 + 设置」，右栏是「预览 + 文件清单」。</p>
+
+    <h3>左栏：四个步骤卡片</h3>
+    <table>
+      <thead><tr><th>卡片</th><th>做什么</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge">1 二维码数据</span></td><td>填写/导入两列数据；下方有一排整理按钮（替换、去首尾空格、去除重复行、删除空行）</td></tr>
+        <tr><td><span class="badge">2 图片名称</span></td><td>设置「名称为空的行」怎么自动命名（数字排序 / 用内容 / 自定义）</td></tr>
+        <tr><td><span class="badge">3 样式与尺寸</span></td><td>尺寸、静区边距、前景色、背景色、容错率、圆点样式；再往下是「LOGO 设置」和「展示文字」两个<b>可折叠</b>区块</td></tr>
+        <tr><td><span class="badge">4 导出</span></td><td>选输出格式（PNG/JPG/SVG），然后导出单张或批量打包</td></tr>
+      </tbody>
+    </table>
+
+    <h3>右栏：预览与清单</h3>
+    <ul>
+      <li><b>预览</b>：显示当前这一条的二维码效果，标题右侧会显示「版本 N · 模块尺寸 · 容错等级」</li>
+      <li><b>文件清单</b>：列出所有将要导出的文件及文件名，点任意一行可跳到该条预览</li>
+      <li>数据很多时清单只显示前 500 条（<b>不影响导出</b>，导出的还是全部）</li>
+    </ul>
+
+    <div class="tip">
+      改完数据或样式，预览区会自动刷新；右侧预览是按你的屏幕像素比高倍率渲染再缩小的，所以<b>放大看也很清晰，不会糊</b>。
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="s4">
+    <h2><span class="n">4</span>准备数据：两列怎么写</h2>
+    <p>数据框里<b>一行就是一条</b>二维码，一行里可以写两列：</p>
+    <pre><code>图片名称, 二维码内容
+门店A-桌贴, https://example.com/a
+门店B-海报, https://example.com/b
+物料M001, 商品编号 A-001</code></pre>
+
+    <h3>两列分别是啥</h3>
+    <table>
+      <thead><tr><th>列</th><th>作用</th><th>可否省略</th></tr></thead>
+      <tbody>
+        <tr><td><b>第一列</b> 图片名称</td><td>① 用作导出的文件名；② 若开启「展示文字」并选「用图片名称」，会印在二维码下方</td><td>可以省略（见下）</td></tr>
+        <tr><td><b>第二列</b> 二维码内容</td><td>扫码后真正显示的内容（网址、编号、一段文字…）</td><td>不建议省略</td></tr>
+      </tbody>
+    </table>
+
+    <h3>分隔符用哪个？</h3>
+    <ul>
+      <li><b>英文逗号</b> <code>,</code> —— 手动输入时最方便</li>
+      <li><b>Tab（制表符）</b> —— 从 Excel 里直接<b>复制粘贴</b>过来就是 Tab 分隔，不用管</li>
+    </ul>
+
+    <h3>只写一列行不行？</h3>
+    <p>行。只写一列时，这一列会被当成「二维码内容」，名称留空，导出时按「图片名称」卡片里的规则自动编号。</p>
+    <pre><code>https://example.com/只有内容也行
+https://example.com/第二条</code></pre>
+
+    <div class="warn">
+      <b>内容里有逗号 / 引号 / 换行怎么办？</b> 用英文双引号把整段包起来即可，例如
+      <code>"洛漫,西餐厅"</code> 或 <code>"第一行\n第二行"</code>。工具会自动识别引号，把里面的逗号当作内容而不是分隔符。
+    </div>
+
+    <div class="tip">
+      <b>中文完全没问题。</b> 内容支持 UTF-8，中文、emoji、特殊符号都能生成。
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="s5">
+    <h2><span class="n">5</span>导入 Excel / CSV / 文本</h2>
+
+    <div class="step">
+      <div class="idx">1</div>
+      <div class="body">
+        <h4>先下载模板（强烈建议）</h4>
+        <p>点数据框下方的 <span class="ui">下载模板</span>，会得到一份 <code>二维码批量生成-导入模板.csv</code>。它已经把格式定好了，你照着填就不会出错。</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="idx">2</div>
+      <div class="body">
+        <h4>用 Excel / WPS 填好</h4>
+        <p>双击用 Excel 或 WPS 打开，第一行是表头（名称、内容），下面一行行填。</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="idx">3</div>
+      <div class="body">
+        <h4>回来点「导入 Excel / CSV」</h4>
+        <p>支持 <code>.xlsx</code> / <code>.xls</code> / <code>.csv</code> / <code>.txt</code>。工具会读前两列，<b>自动跳过表头</b>（第一行若是「名称/内容」之类会被忽略）。</p>
+      </div>
+    </div>
+
+    <div class="warn">
+      <b>导入小提醒：</b>
+      <ul style="margin-bottom:0;">
+        <li>模板只提供 <b>CSV</b> 格式 —— 它通用性最好，Excel、WPS、各类表格软件都能直接打开编辑</li>
+        <li>如果 CSV 里的中文在 Excel 里显示乱码，用 Excel 的「数据 → 从文本/CSV 导入」并选 <b>UTF-8</b> 编码即可</li>
+        <li>导入会<b>覆盖</b>当前数据框里的内容，建议先导完再改</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="s6">
+    <h2><span class="n">6</span>数据整理：替换、去重、去空格</h2>
+    <p>数据框下方有一排小按钮，改完会立刻写回数据框（所见即所得）：</p>
+
+    <table>
+      <thead><tr><th>按钮</th><th>作用</th><th>什么时候用</th></tr></thead>
+      <tbody>
+        <tr><td><span class="ui">替换</span></td><td>把左框「查找」里的文字，全部替换成右框「替换为」的内容</td><td>批量换域名、换前缀</td></tr>
+        <tr><td><span class="ui">去首尾空格</span></td><td>删掉每条名称和内容两边的多余空格</td><td>从别处复制来、带了空格导致扫不出时</td></tr>
+        <tr><td><span class="ui">去除重复行</span></td><td>内容相同的行只保留一条</td><td>复制粘贴时不小心重复粘贴</td></tr>
+        <tr><td><span class="ui">删除空行</span></td><td>把没有内容的空行删掉</td><td>表格末尾有多余空行</td></tr>
+      </tbody>
+    </table>
+
+    <div class="tip">
+      数据框上方还有一行<b>实时统计</b>：总条数、唯一内容条数，并会标出「内容重复X条」「超长X条」「缺内容X条」。<b>导出前扫一眼这行</b>，能提前发现很多问题。
+    </div>
+
+    <div class="danger">
+      <b>「超长」是什么？</b> 二维码能装的内容有上限。内容太长会超出二维码容量、无法生成。看到「超长」提示，就该把内容精简（例如用短链接）。
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="s7">
+    <h2><span class="n">7</span>调样式：尺寸、颜色、圆点</h2>
+    <p>「样式与尺寸」卡片里能调这些：</p>
+
+    <table>
+      <thead><tr><th>选项</th><th>说明</th><th>建议</th></tr></thead>
+      <tbody>
+        <tr><td>尺寸（px）</td><td>输出图片的边长，单位像素</td><td>屏幕展示 300–600；要印刷就调大，比如 1000+</td></tr>
+        <tr><td>静区边距（模块数）</td><td>二维码四周的留白宽度。<b>这是扫描器识别所必需的</b></td><td>保持默认 4，<b>不要调到 0</b></td></tr>
+        <tr><td>前景色 / 背景色</td><td>二维码的「点」和「底」的颜色</td><td>深色点 + 浅色底，对比越强越易扫</td></tr>
+        <tr><td>容错率</td><td>L / M / Q / H 四档，见 <a href="#s11">第 11 节</a></td><td>没 LOGO 用 M；有 LOGO 用 H</td></tr>
+        <tr><td>圆点样式</td><td>方形（标准）/ 圆点 / 圆角</td><td>想要好看选圆点/圆角；担心扫不出就用方形</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn">
+      <b>关于颜色的一条铁律：</b> 二维码靠<b>明暗对比</b>工作。一定要「深色码点 + 浅色底」。如果做成浅色点 + 深色底（反色），很多扫描器会扫不出来。彩色可以用，但别太浅、别和底色太接近。
+    </div>
+
+    <div class="danger">
+      <b>静区别归零。</b> 静区就是二维码外面那圈留白，扫描器靠它判断二维码边界。留白被裁掉或压掉，二维码大概率扫不出。
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="s8">
+    <h2><span class="n">8</span>加 LOGO 与展示文字</h2>
+    <p>这两个区块默认<b>折叠</b>（点标题就能展开），不用的话不用管它。</p>
+
+    <h3>LOGO 设置</h3>
+    <div class="step">
+      <div class="idx">1</div>
+      <div class="body">
+        <h4>点「选择 LOGO」上传图片</h4>
+        <p>建议用<b>方形、透明或纯色底</b>的 LOGO（PNG 最合适）。上传后左边会显示预览。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="idx">2</div>
+      <div class="body">
+        <h4>调「LOGO 占比」</h4>
+        <p>滑块范围 <b>10% – 25%</b>。LOGO 越大越显眼，但越容易挡住二维码导致扫不出，<b>上限锁死在 25%</b>。默认 22%。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="idx">3</div>
+      <div class="body">
+        <h4>勾选「LOGO 周围加白色留白」</h4>
+        <p>默认已勾选。LOGO 和二维码点之间留一圈白，能显著提升识别率，建议保持勾选。</p>
+      </div>
+    </div>
+
+    <div class="danger">
+      <b>加了 LOGO，请务必把容错率设为 H。</b> LOGO 会遮住二维码中间一块，容错率 H 允许约 30% 的遮挡，才能保证还能扫出来。这是本工具里最容易出错的一步。
+    </div>
+
+    <h3>展示文字</h3>
+    <p>可以让二维码<b>上方</b>或<b>下方</b>印一行文字（比如门店名），方便人工辨认。</p>
+    <table>
+      <thead><tr><th>设置</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>位置</td><td>不显示 / 上方 / 下方（默认「不显示」）</td></tr>
+        <tr><td>字号（px）</td><td>文字大小，默认 20</td></tr>
+        <tr><td>文字来源</td><td><b>用图片名称</b>（默认，取第一列）/ 用二维码内容（取第二列）/ 固定文案（所有码印同一句话）</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn">
+      <b>注意：</b> 展示文字只对 <b>PNG / JPG</b> 生效。选 <b>SVG</b> 格式导出时不带 LOGO 和文字（SVG 是纯矢量二维码，方便后期自己排版）。
+    </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="s9">
+    <h2><span class="n">9</span>选输出格式与命名规则</h2>
+
+    <h3>输出格式</h3>
+    <table>
+      <thead><tr><th>格式</th><th>特点</th><th>适合</th></tr></thead>
+      <tbody>
+        <tr><td><b>PNG</b>（默认）</td><td>线条锐利、支持透明背景，支持 LOGO 与展示文字</td><td>绝大多数场景，首选</td></tr>
+        <tr><td><b>JPG</b></td><td>文件小，但<b>不支持透明</b>，边缘可能有轻微噪点</td><td>需要压体积、且不需要透明时</td></tr>
+        <tr><td><b>SVG</b></td><td>矢量，<b>可无限放大不糊</b>，适合印刷；<b>不含 LOGO 与文字</b></td><td>要交给设计师印刷、后期自己加元素</td></tr>
+      </tbody>
+    </table>
+
+    <h3>命名规则（「图片名称」卡片）</h3>
+    <p>决定「名称列为空的行」怎么起名：</p>
+    <ul>
+      <li><b>用数字排序</b>（默认）—— 按 1、2、3… 顺序编号</li>
+      <li><b>用二维码内容</b> —— 拿内容当文件名</li>
+      <li><b>自定义</b> —— 自己设定前缀/规则</li>
+    </ul>
+    <div class="tip">
+      <b>优先级：名称列 &gt; 这里的设置。</b> 只要某行填了名称，就一定用名称；只有名称为空的行才走上面的规则。文件名里的非法字符（<code>\ / : * ? " &lt; &gt; |</code>）会被自动清洗掉。
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="s10">
+    <h2><span class="n">10</span>导出：单张 / 批量 ZIP</h2>
+
+    <h3>批量导出（最常用）</h3>
+    <div class="step">
+      <div class="idx">1</div>
+      <div class="body">
+        <h4>点 <span class="ui">批量导出（打包为 ZIP）</span></h4>
+        <p>会弹出进度层，显示「正在生成 X / 总数」。数据多时耐心等一下。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="idx">2</div>
+      <div class="body">
+        <h4>浏览器自动下载 ZIP</h4>
+        <p>文件名形如 <code>qrcodes_20261012.zip</code>。解压即可得到全部二维码图片。</p>
+      </div>
+    </div>
+
+    <h3>只导出一张</h3>
+    <p>用预览区的 <span class="ui">← 上一张</span> / <span class="ui">下一张 →</span> 翻到目标，点 <span class="ui">下载当前这张</span>。</p>
+
+    <h3>「刷新预览」是干嘛的</h3>
+    <p>正常情况下改样式预览会自动刷新；如果发现预览没跟上你的改动，点一下 <span class="ui">刷新预览</span> 强制刷新即可。</p>
+
+    <div class="tip">
+      <b>ZIP 里文件名重复怎么办？</b> 工具会自动去重，第二个重名的会变成 <code>名称(2).png</code>，不会互相覆盖。
+    </div>
+  </div>
+
+  <!-- 11 -->
+  <div class="card" id="s11">
+    <h2><span class="n">11</span>怎样扫得出来：容错率与实测</h2>
+    <p>「容错率」是二维码最重要的一个概念，选对它能省掉 90% 的「扫不出来」问题。</p>
+
+    <table>
+      <thead><tr><th>等级</th><th>能容忍多少遮挡/污损</th><th>容量</th><th>什么时候用</th></tr></thead>
+      <tbody>
+        <tr><td><b>L</b> 低</td><td>~7%</td><td>最大</td><td>内容特别长、又只在屏幕上扫</td></tr>
+        <tr><td><b>M</b> 中（默认）</td><td>~15%</td><td>中</td><td>一般用途，没加 LOGO</td></tr>
+        <tr><td><b>Q</b> 较高</td><td>~25%</td><td>较小</td><td>会打印、可能有点磨损</td></tr>
+        <tr><td><b>H</b> 最高</td><td>~30%</td><td>最小</td><td><b>加了 LOGO 就必须用它</b></td></tr>
+      </tbody>
+    </table>
+
+    <div class="quick">
+      <b>一句话记法：</b> 容错率越高，二维码「越结实」（越耐脏、耐遮挡），但能装的内容越少、图案越密。<b>加 LOGO → H，不加 → M</b>，基本够用。
+    </div>
+
+    <h3>影响能不能扫出来的 4 件事（按重要性）</h3>
+    <ol>
+      <li><b>静区留白</b> 没被裁掉（至少四周各留 4 个模块）</li>
+      <li><b>对比度</b> 够强（深点浅底，别做反色）</li>
+      <li><b>容错率</b> 与遮挡量匹配（有 LOGO 用 H）</li>
+      <li><b>尺寸</b> 打印出来别太小（建议成品 ≥ 2×2 厘米）</li>
+    </ol>
+
+    <h3>本工具的实测结论</h3>
+    <ul>
+      <li>先用 ZXing 解码器（主流扫码 App 同款算法）实测：覆盖版本 1–34、L/M/Q/H 四档、中英混排，<b>全部可正常扫出</b>。</li>
+      <li>含展示文字的 SVG 还原成图片后，依然能正常解码。</li>
+      <li>工具每次打开时会自动做一次内核自检，控制台会打印 <code>[自检] QR 内核正常</code>，说明生成引擎工作正常。</li>
+    </ul>
+  </div>
+
+  <!-- 12 -->
+  <div class="card" id="s12">
+    <h2><span class="n">12</span>常见问题与排错</h2>
+
+    <h4>Q1：打开是空白 / 按钮点了没反应？</h4>
+    <p>确认用 <b>Chrome 或 Edge</b> 打开，并且是<b>新版</b>（建议 103 以上）。不要用 IE，也不要用手机自带浏览器。若还是不行，参考 <a href="#s13">浏览器支持</a>。</p>
+
+    <h4>Q2：生成的二维码扫不出来？</h4>
+    <p>按顺序检查：① 静区边距是不是被调成 0 了（改回 4）；② 是不是加了 LOGO 却没把容错率设为 H；③ 前景/背景色对比是不是太弱；④ 是不是做了反色（浅点深底）。</p>
+
+    <h4>Q3：提示某些行「超长」？</h4>
+    <p>二维码容量有上限，内容太长就没法生成。缩短内容，或用短链接服务把长网址转短。</p>
+
+    <h4>Q4：导入 Excel 后中文乱码 / 导入没反应？</h4>
+    <p>优先用 CSV 模板。若是 xlsx 仍异常，另存为 CSV 再导入。确认文件扩展名是 <code>.xlsx</code> / <code>.xls</code> / <code>.csv</code> / <code>.txt</code> 之一。</p>
+
+    <h4>Q5：文件名里出现了奇怪的字符？</h4>
+    <p>Windows 文件名不允许 <code>\ / : * ? " &lt; &gt; |</code> 这些字符，工具会自动替换成安全字符，属正常现象。</p>
+
+    <h4>Q6：导出的 ZIP 打不开 / 解压失败？</h4>
+    <p>确认下载完整（文件大小不是 0）。老版本浏览器下 ZIP 会用「不压缩」模式生成，文件会偏大但一定能解压。若解压软件报错，换 Windows 自带解压或 7-Zip 试试。</p>
+
+    <h4>Q7：数据会上传到网上吗？</h4>
+    <p><b>不会。</b> 整个工具就是一个本地 HTML 文件，代码在你自己浏览器里跑，<b>没有任何网络请求</b>。可以拔网线验证：断网后功能一切照旧。</p>
+
+    <h4>Q8：想换一台电脑用怎么办？</h4>
+    <p>直接把 <code>app.html</code> 这一个文件复制过去即可，<b>无需安装任何软件</b>。这就是「单文件工具」的好处。</p>
+
+    <h4>Q9：一次能生成多少张？</h4>
+    <p>几百到几千张都没有问题。数据量很大时，预览区的文件清单只显示前 500 条（避免卡顿），但<b>导出的是全部</b>。</p>
+  </div>
+
+  <!-- 13 -->
+  <div class="card" id="s13">
+    <h2><span class="n">13</span>术语小词典</h2>
+    <table>
+      <thead><tr><th>词</th><th>什么意思</th></tr></thead>
+      <tbody>
+        <tr><td><b>二维码</b></td><td>一种方形黑白图案，手机一扫就能读到里面的内容（网址、文字等）。</td></tr>
+        <tr><td><b>模块 (module)</b></td><td>二维码里最小的一个黑/白小方格，相当于二维码的「像素」。</td></tr>
+        <tr><td><b>静区</b></td><td>二维码四周的留白。扫描器靠它识别二维码的边界，<b>必须有，不能裁掉</b>。</td></tr>
+        <tr><td><b>容错率</b></td><td>二维码被遮挡/污损后仍能读出的能力，分 L / M / Q / H 四档，越高越结实但容量越小。</td></tr>
+        <tr><td><b>LOGO 占比</b></td><td>中间放的 LOGO 图片占二维码边长的比例。本工具限制在 10%–25%。</td></tr>
+        <tr><td><b>展示文字</b></td><td>印在二维码上/下的一行说明文字，方便人工辨认。</td></tr>
+        <tr><td><b>CSV</b></td><td>逗号分隔的文本表格，任何表格软件都能打开，通用性最好。</td></tr>
+        <tr><td><b>xlsx</b></td><td>Excel 的表格文件格式。本工具可读取，不依赖任何第三方库。</td></tr>
+        <tr><td><b>PNG / JPG / SVG</b></td><td>三种图片格式：PNG 清晰可透明；JPG 体积小不透明；SVG 是矢量图、可无限放大。</td></tr>
+        <tr><td><b>ZIP</b></td><td>压缩包格式，把很多文件打包成一个。Windows 右键「解压缩」即可打开。</td></tr>
+        <tr><td><b>预览</b></td><td>导出之前，先在屏幕上看看效果对不对。</td></tr>
+      </tbody>
+    </table>
+
+    <h3>浏览器支持</h3>
+    <table>
+      <thead><tr><th>浏览器</th><th>支持情况</th></tr></thead>
+      <tbody>
+        <tr><td>Chrome 103+</td><td>✅ 完整支持</td></tr>
+        <tr><td>Edge 103+</td><td>✅ 完整支持</td></tr>
+        <tr><td>Safari 16.4+</td><td>✅ 完整支持</td></tr>
+        <tr><td>Firefox 113+</td><td>✅ 支持（xlsx 导入需 113+）</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:13.5px;color:var(--sub);">老版本浏览器下，ZIP 会回退为「不压缩」模式，xlsx 导入不可用，其余功能正常。</p>
+  </div>
+
+  <div class="footer">
+    二维码批量生成工具 <span class="ver">Ver 1.0</span> &nbsp;·&nbsp; Powered by Yulai @2026 &nbsp;·&nbsp; E-mail：<a href="mailto:liyulai@qq.com">liyulai@qq.com</a>
+  </div>
+
+</div>
+</body>
+</html>

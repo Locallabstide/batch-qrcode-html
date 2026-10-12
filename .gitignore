@@ -1,0 +1,15 @@
+# 开发过程记录（WorkBuddy 工作目录）
+.workbuddy/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 临时文件
+*.tmp
+*.log
+~$*

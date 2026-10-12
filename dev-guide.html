@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>开发者手册 · 二维码批量生成工具 Ver 1.0</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#fff; --line:#e3e6ec; --text:#1f2430; --sub:#6b7280;
+    --accent:#2f6bff; --accent-dark:#1f4fd8; --ok:#16a34a; --warn:#d97706; --danger:#dc2626;
+    --code-bg:#f3f5f9;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Segoe UI","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:15px; line-height:1.8;
+  }
+  .page{max-width:960px;margin:0 auto;padding:32px 24px 80px;}
+
+  .hero{
+    background:linear-gradient(135deg,#1f4fd8,#3f6bff);
+    color:#fff;border-radius:16px;padding:34px 32px;margin-bottom:28px;
+    box-shadow:0 10px 30px rgba(31,79,216,.22);
+  }
+  .hero h1{margin:0 0 8px;font-size:26px;line-height:1.35;}
+  .hero .sub{opacity:.92;font-size:14px;}
+  .hero .meta{margin-top:16px;font-size:13px;opacity:.95;line-height:1.9;}
+  .hero .meta a{color:#fff;text-decoration:underline;}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:22px 26px;margin-bottom:20px;
+  }
+  h2{
+    font-size:19px;margin:0 0 14px;padding-bottom:10px;
+    border-bottom:2px solid #eef2ff;display:flex;align-items:center;gap:10px;
+  }
+  h2 .n{
+    width:26px;height:26px;border-radius:8px;background:var(--accent-dark);color:#fff;
+    display:inline-flex;align-items:center;justify-content:center;font-size:13px;flex:none;
+  }
+  h3{font-size:16px;margin:24px 0 10px;color:var(--accent-dark);}
+  h4{font-size:14.5px;margin:16px 0 8px;}
+  p{margin:9px 0;}
+  ul,ol{margin:9px 0;padding-left:24px;}
+  li{margin:5px 0;}
+  a{color:var(--accent);}
+  code{
+    background:var(--code-bg);border:1px solid var(--line);border-radius:5px;
+    padding:1px 6px;font-family:Consolas,"Courier New",monospace;font-size:13.5px;color:#b8295b;
+  }
+  pre{
+    background:#1f2430;color:#e6e9f0;border-radius:10px;padding:14px 16px;
+    overflow-x:auto;font-size:13px;line-height:1.7;
+    font-family:Consolas,"Courier New",monospace;margin:10px 0;
+  }
+  pre code{background:none;border:none;color:inherit;padding:0;}
+  pre .c{color:#7f8ea3;}
+  pre .k{color:#c792ea;}
+  pre .s{color:#a5e075;}
+  pre .n{color:#f5a97f;}
+
+  .quick{
+    background:#f0f7ff;border:1px solid #cfe0ff;border-left:4px solid var(--accent);
+    border-radius:10px;padding:14px 18px;margin:14px 0;
+  }
+  .quick b{color:var(--accent-dark);}
+  .tip{background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid var(--ok);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:14px;}
+  .warn{background:#fffbeb;border:1px solid #fde68a;border-left:4px solid var(--warn);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:14px;}
+  .danger{background:#fef2f2;border:1px solid #fecaca;border-left:4px solid var(--danger);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:14px;}
+
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13.8px;}
+  th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top;}
+  th{background:#f7f9fc;font-weight:600;}
+  tbody tr:nth-child(even){background:#fcfdff;}
+  td code{font-size:12.8px;}
+
+  .toc{
+    background:#fbfcfe;border:1px solid var(--line);border-radius:12px;padding:16px 22px;margin-bottom:22px;
+  }
+  .toc h3{margin:0 0 10px;font-size:15px;color:var(--text);}
+  .toc ol{margin:0;padding-left:22px;columns:2;column-gap:32px;}
+  .toc li{margin:4px 0;font-size:14px;}
+  @media(max-width:640px){.toc ol{columns:1;}}
+
+  .badge{display:inline-block;background:#eef3ff;color:var(--accent-dark);border-radius:6px;padding:1px 8px;font-size:12.5px;font-weight:600;font-family:Consolas,monospace;}
+
+  .footer{
+    margin-top:36px;padding-top:18px;border-top:1px solid var(--line);
+    text-align:center;font-size:13px;color:var(--sub);line-height:2;
+  }
+  .footer a{color:var(--accent);text-decoration:none;}
+  .footer a:hover{text-decoration:underline;}
+  .footer .ver{color:var(--accent);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <h1>二维码批量生成工具 · 开发者手册</h1>
+    <div class="sub">单文件 · 零依赖 · 纯前端的批量二维码生成器 —— 源码级技术文档</div>
+    <div class="meta">
+      版本：<b>Ver 1.0</b>　|　文件：<code style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.25);color:#fff;">app.html</code>　|　约 1960 行 / 73 KB<br>
+      E-mail：<a href="mailto:liyulai@qq.com">liyulai@qq.com</a>　|　GitHub：<a href="https://github.com/Locallabstide">@Locallabstide</a>
+    </div>
+
+    <div class="nav" style="margin-top:18px;display:flex;flex-wrap:wrap;gap:10px;">
+      <a href="index.html" style="color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);border-radius:8px;padding:6px 15px;font-size:14px;">← 返回首页</a>
+      <a href="app.html" style="color:#1f4fd8;text-decoration:none;background:#fff;border-radius:8px;padding:6px 15px;font-size:14px;font-weight:600;">▶ 打开工具</a>
+      <a href="user-guide.html" style="color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);border-radius:8px;padding:6px 15px;font-size:14px;">用户手册 →</a>
+    </div>
+  </div>
+
+  <div class="toc">
+    <h3>📖 目录</h3>
+    <ol>
+      <li><a href="#s1">项目概览</a></li>
+      <li><a href="#s2">设计原则与约束</a></li>
+      <li><a href="#s3">文件结构与代码分区</a></li>
+      <li><a href="#s4">状态模型 state</a></li>
+      <li><a href="#s5">QR 生成内核</a></li>
+      <li><a href="#s6">数据解析与 CSV 往返</a></li>
+      <li><a href="#s7">xlsx 轻量解析</a></li>
+      <li><a href="#s8">渲染管线（Canvas / SVG）</a></li>
+      <li><a href="#s9">ZIP 打包器实现</a></li>
+      <li><a href="#s10">预览清晰度系统</a></li>
+      <li><a href="#s11">性能分析与量级</a></li>
+      <li><a href="#s12">已知问题与待办</a></li>
+      <li><a href="#s13">扩展指南</a></li>
+      <li><a href="#s14">调试与自测</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="s1">
+    <h2><span class="n">1</span>项目概览</h2>
+    <p>这是一个把「一张两列表格」批量转成「一堆带样式二维码图片」的纯前端工具。打包成单个 HTML 文件，双击即用，无需服务器、无需联网、无需安装任何依赖。</p>
+
+    <h3>能力边界</h3>
+    <table>
+      <thead><tr><th>维度</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>输入</td><td>两列数据：<code>{name, content}</code>。来源：手动文本、<code>.xlsx</code> / <code>.csv</code> / <code>.txt</code> 导入</td></tr>
+        <tr><td>核心</td><td>纯 JS 实现的 QR 生成内核（版本 1–40，UTF-8，L/M/Q/H，8 掩码择优）</td></tr>
+        <tr><td>样式</td><td>尺寸、静区、前景/背景色、圆点样式、LOGO（10–25%）、上/下展示文字</td></tr>
+        <tr><td>输出</td><td>PNG / JPG / SVG，单张下载或打包 ZIP</td></tr>
+        <tr><td>运行环境</td><td>Chromium 103+ / Safari 16.4+ / Firefox 113+（依赖 <code>CompressionStream</code>）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>代码规模</h3>
+    <table>
+      <thead><tr><th>分区</th><th>起始行</th><th>职责</th></tr></thead>
+      <tbody>
+        <tr><td><b>PART 1</b> QR 生成内核</td><td>~451</td><td>GF(256) 运算、容量表、分段编码、RS 纠错、矩阵构建</td></tr>
+        <tr><td><b>PART 2</b> xlsx 轻量解析</td><td>~973</td><td>ZIP 读取、sharedStrings、sheet XML、CSV/文本解析</td></tr>
+        <tr><td><b>PART 3</b> 渲染</td><td>~1159</td><td>Canvas / SVG 绘制、布局计算、state、样式读取</td></tr>
+        <tr><td><b>PART 4</b> ZIP 打包</td><td>~1415</td><td>CRC32、deflateRaw、PKZIP 写入</td></tr>
+        <tr><td><b>PART 5</b> 界面逻辑</td><td>~1508</td><td>事件绑定、预览、导出、模板下载、自检</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="s2">
+    <h2><span class="n">2</span>设计原则与约束</h2>
+    <ol>
+      <li><b>零依赖</b> —— 不引任何 CDN、npm 包。SheetJS、qrcode.js 这类常见库全部自研替代。</li>
+      <li><b>单文件</b> —— 一个 <code>.html</code> 即完整产品，方便通过邮件/U 盘分发，双击即用。</li>
+      <li><b>纯离线</b> —— 不发起任何网络请求，数据不离开本机。可断网验证。</li>
+      <li><b>IIFE + 严格模式</b> —— 全部逻辑包在一个立即执行函数里，避免污染全局；<code>"use strict"</code> 强制显式声明。</li>
+      <li><b>渐进增强</b> —— <code>CompressionStream</code> 缺失时 ZIP 回退「存储模式」，功能不中断（仅体积变大）。</li>
+      <li><b>能力透明</b> —— UI 文案与代码行为严格一致；不支持的组合（如 SVG 不含 LOGO）要在界面上明说。</li>
+    </ol>
+    <div class="warn">
+      <b>为什么不用现成库？</b> 因为是「单文件离线分发」场景：引 CDN 会破坏离线；内联大库会显著增大文件体积并引入不必要的依赖面。<b>自研 + 按需实现</b>是这里的最优解。
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="s3">
+    <h2><span class="n">3</span>文件结构与代码分区</h2>
+    <p>文件自上而下分为：<code>&lt;head&gt;</code> 内的样式 → <code>&lt;body&gt;</code> 的 DOM 骨架 → 单个 <code>&lt;script&gt;</code> 内的五个 PART。</p>
+
+    <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;style&gt;  ... 全部 CSS（约 440 行）  &lt;/style&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;!-- 左栏：4 个步骤卡片；右栏：预览 + 文件清单 --&gt;
+    &lt;script&gt;
+      "use strict";
+      (function(){                      <span class="c">// 唯一入口 IIFE</span>
+        <span class="c">/* PART 1  QR 生成内核   */</span>
+        <span class="c">/* PART 2  xlsx 解析     */</span>
+        <span class="c">/* PART 3  渲染          */</span>
+        <span class="c">/* PART 4  ZIP 打包      */</span>
+        <span class="c">/* PART 5  界面逻辑      */</span>
+        (function init(){ ... })();       <span class="c">// 自检 + 首次渲染</span>
+      })();
+    &lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+    <div class="tip">
+      <b>阅读建议：</b> 想改生成逻辑看 PART 1；想改解析看 PART 2；想改界面/样式看 PART 3 + PART 5；想改打包看 PART 4。
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="s4">
+    <h2><span class="n">4</span>状态模型 state</h2>
+    <pre><code>const state = {
+  data: [],          <span class="c">// [{ name, content }]  ← 双列模型，核心数据结构</span>
+  current: 0,        <span class="c">// 预览中的下标</span>
+  logoImg: null,     <span class="c">// 已加载的 LOGO Image 对象</span>
+  nameMode: "index", <span class="c">// 名称为空时的命名策略：index | content | custom</span>
+  textPos: "none",   <span class="c">// 展示文字位置：none | top | bottom</span>
+  fmt: "png"         <span class="c">// 输出格式：png | jpg | svg</span>
+};</code></pre>
+
+    <h3>两列数据模型（架构要点）</h3>
+    <p><code>state.data</code> 是 <b><code>{name, content}</code> 对象数组</b>，而非字符串数组。这一点贯穿所有模块：</p>
+    <ul>
+      <li><code>parseTextRows</code> / <code>parseCsvRows</code> / <code>readXlsxRows</code> → 产出 <code>{name, content}[]</code></li>
+      <li><code>fileNameFor(row, idx)</code> → 依 <code>row.name</code> 或命名策略生成文件名</li>
+      <li><code>getTextFor(row, st)</code> → 依文字来源返回展示文字</li>
+      <li><code>renderCanvas(row, st, scale)</code> / <code>renderSVG(row, st)</code> → 接收 <code>row</code> 而非纯字符串</li>
+    </ul>
+
+    <h3>数据流（单向）</h3>
+    <pre><code>textarea.value
+   │  parseTextRows()          <span class="c">// 唯一解析入口</span>
+   ▼
+state.data ──┬─→ renderList()    <span class="c">// 文件清单</span>
+             ├─→ updateStats()   <span class="c">// 统计（重复/超长/缺内容）</span>
+             ├─→ updatePreview() <span class="c">// 预览单条</span>
+             └─→ exportZip()     <span class="c">// 批量导出</span>
+
+样式控件 ── readStyle() ──→ st（传给所有渲染函数）</code></pre>
+    <div class="tip">
+      <b>单一数据源：</b> <code>textarea</code> 是唯一「真相来源」，<code>state.data</code> 由它派生。所有整理按钮（替换/去重等）都通过 <code>setRowsToText()</code> 写回 textarea 再重新解析，保证「界面显示的 = 实际使用的」。
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="s5">
+    <h2><span class="n">5</span>QR 生成内核</h2>
+    <p>PART 1 是一个完整的 QR Code 生成器，思路参考 Nayuki 的算法结构，用纯 JS 重写。</p>
+
+    <h3>5.1 GF(256) 有限域运算</h3>
+    <pre><code><span class="c">// 预计算 exp/log 表，把乘法转成加法（查表）</span>
+const GF_EXP = new Uint8Array(512), GF_LOG = new Uint8Array(256);
+(function(){
+  let x = 1;
+  for(let i = 0; i &lt; 255; i++){
+    GF_EXP[i] = x; GF_LOG[x] = i;
+    x &lt;&lt;= 1; if(x &amp; 0x100) x ^= 0x11D;   <span class="c">// 本原多项式 x^8+x^4+x^3+x^2+1</span>
+  }
+  for(let i = 255; i &lt; 512; i++) GF_EXP[i] = GF_EXP[i - 255];
+})();</code></pre>
+
+    <h3>5.2 容量表（关键数据）</h3>
+    <p>两张 41×4 的常量表，取自 ISO/IEC 18004 官方数据：</p>
+    <ul>
+      <li><code>ECC_CODEWORDS_PER_BLOCK[ver][eclIdx]</code> —— 每块的纠错码字数</li>
+      <li><code>NUM_ERROR_CORRECTION_BLOCKS[ver][eclIdx]</code> —— 纠错块数</li>
+    </ul>
+    <pre><code>function getNumDataCodewords(ver, ecl){
+  return Math.floor(getNumRawDataModules(ver) / 8)
+    - ECC_CODEWORDS_PER_BLOCK[ver][idx] * NUM_ERROR_CORRECTION_BLOCKS[ver][idx];
+}</code></pre>
+
+    <div class="danger">
+      <b>⚠️ 曾经踩过的坑（务必引以为戒）：</b> 最初把 <code>ECC_CODEWORDS_PER_BLOCK</code> 手工误抄成了「每版本纠错码字<b>总数</b>」而非「<b>每块</b>纠错码字数」。结果 <code>getNumDataCodewords</code> 在版本 ≥ 10 时返回负数，高版本全部生成失败。<br>
+      <b>正确做法：</b> 这类 40×4 的常量表<b>绝不手工转录</b>，应从权威来源机读提取，并用公式自校验：<br>
+      <code>rawCw − ECC×blocks === totalData</code>（160 组全部成立才算通过）。
+    </div>
+
+    <h3>5.3 分段编码</h3>
+    <p>按内容自动选择最省的模式：</p>
+    <table>
+      <thead><tr><th>模式</th><th>判定</th><th>每字符位宽</th></tr></thead>
+      <tbody>
+        <tr><td>数字 Numeric</td><td>纯数字</td><td>10 / 7 / 4（按 3/2/1 位分组）</td></tr>
+        <tr><td>字母数字 Alnum</td><td>仅 <code>0-9 A-Z $%*+-./:</code></td><td>11 / 6</td></tr>
+        <tr><td>字节 Bytes</td><td>其余（含中文）</td><td>UTF-8，每字节 8 位</td></tr>
+      </tbody>
+    </table>
+    <p>关键函数：<code>isNumeric</code> / <code>isAlnum</code> / <code>makeSegments</code> / <code>getTotalBits</code> / <code>numCharCountBits</code>。</p>
+
+    <h3>5.4 纠错与交织</h3>
+    <p><code>addEccAndInterleave</code> 对每块数据计算 Reed-Solomon 纠错码，然后<b>按列交织</b>（interleave）成最终码字序列。配套函数：<code>rsGenPoly</code>、<code>rsComputeDivisor</code>、<code>rsComputeRemainder</code>。</p>
+
+    <h3>5.5 矩阵构建与掩码</h3>
+    <p>依次放置：定位图案（三个角）→ 校正图案 → 时序图案 → 格式信息 → 版本信息 → 数据。生成 8 种掩码各算惩罚分（<code>PENALTY_*</code>），选最低分的那个。</p>
+
+    <h3>5.6 对外接口</h3>
+    <pre><code>function generateQR(text, ecl) → {
+  version,          <span class="c">// 1–40</span>
+  size,             <span class="c">// 模块边长 = version*4 + 17</span>
+  mask,             <span class="c">// 选中的掩码 0–7</span>
+  getModule(x, y)   <span class="c">// → true(黑) / false(白)</span>
+};</code></pre>
+    <div class="tip">
+      内核是<b>纯函数</b>：同样的 <code>(text, ecl)</code> 一定得到同样的矩阵，无副作用、无全局状态。这使它可以被单独提取出来做 Node 端测试。
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="s6">
+    <h2><span class="n">6</span>数据解析与 CSV 往返</h2>
+    <h3>6.1 解析入口 parseTextRows</h3>
+    <p>把 textarea 的纯文本转成 <code>{name, content}[]</code>。分隔符优先级：<b>Tab &gt; 逗号 &gt; 整行即内容</b>。</p>
+    <pre><code>function parseTextRows(text){
+  const lines = splitCsvLines(text);   <span class="c">// ← 引号感知的行切分</span>
+  for(const line of lines){
+    if(line.indexOf("\t") &gt;= 0){      <span class="c">// Tab 优先</span>
+      const p = line.split("\t");
+      name = p[0].trim(); content = p.slice(1).join("\t").trim();
+    }else if(line.indexOf(",") &gt;= 0){ <span class="c">// 逗号次之</span>
+      const cells = splitCsvLine(line);
+      name = cells[0].trim(); content = cells.slice(1).join(",").trim();
+    }else{ content = line.trim(); }   <span class="c">// 单列 → 全部当内容</span>
+  }
+}</code></pre>
+
+    <h3>6.2 两个 CSV 工具函数</h3>
+    <table>
+      <thead><tr><th>函数</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td><code>splitCsvLine(line, delim)</code></td><td>单行按分隔符切分，正确处理引号内的分隔符与 <code>""</code> 转义</td></tr>
+        <tr><td><code>csvQuote(s)</code></td><td>写回文本时给含 <code>, " \n</code> 的字段加引号并转义</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn">
+      <b>关键坑：引号内的换行。</b> 早期版本直接 <code>text.split("\n")</code> 切行 —— 结果一个单元格内容里若含换行，会被拆成两行，<b>数据静默损坏</b>。正确做法是先做<b>引号感知的行切分</b>：
+    </div>
+    <pre><code>function splitCsvLines(text){
+  const out = []; let cur = "", inQ = false;
+  for(let i = 0; i &lt; text.length; i++){
+    const c = text[i];
+    if(c === '"'){ inQ = !inQ; cur += c; }
+    else if((c === "\n" || c === "\r") &amp;&amp; !inQ){
+      out.push(cur); cur = "";
+      if(c === "\r" &amp;&amp; text[i+1] === "\n") i++;  <span class="c">// 吃掉 \r\n</span>
+    }else cur += c;
+  }
+  out.push(cur); return out;
+}</code></pre>
+
+    <h3>6.3 往返对称性（不变量）</h3>
+    <p>必须满足：<code>parseTextRows(setRowsToText(rows)) === rows</code>。<code>setRowsToText</code> 要给<b>名称和内容都</b>做引号转义（早期只转义了内容，导致名称含逗号时结构被破坏）。</p>
+    <div class="tip">
+      <b>已实测的往返用例（全部通过）：</b> 普通、名称含逗号、内容含逗号、名称含引号、<b>内容含换行</b>、中文+逗号。
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="s7">
+    <h2><span class="n">7</span>xlsx 轻量解析</h2>
+    <p><code>.xlsx</code> 本质是个 ZIP。解析流程不依赖 SheetJS：</p>
+    <pre><code>file.arrayBuffer()
+   ▼  unzip()              <span class="c">// 解析 ZIP 中央目录，取所需条目</span>
+   ▼  inflateRaw()         <span class="c">// 用原生 DecompressionStream('deflate-raw') 解压</span>
+   ├─ xl/sharedStrings.xml → parseSharedStrings()  <span class="c">// 共享字符串表</span>
+   └─ xl/worksheets/sheet1.xml → parseSheet()      <span class="c">// 单元格</span>
+   ▼  readXlsxRows()       <span class="c">// → [{name, content}]，跳表头</span></code></pre>
+
+    <h3>关键点</h3>
+    <ul>
+      <li><b>中央目录解析</b>：<code>readU16</code> / <code>readU32</code> 按 PKZIP 结构定位每个条目的本地头与数据段</li>
+      <li><b>解压</b>：<code>inflateRaw</code> 用浏览器原生 <code>DecompressionStream('deflate-raw')</code>；method=0 时直接用原始字节</li>
+      <li><b>单元格类型</b>：<code>s</code>（共享字符串）、<code>inlineStr</code>（内联）、<code>b</code>（布尔）、其他按数字处理</li>
+      <li><b>列号换算</b>：<code>colToIndex("AB12")</code> → <code>{col, row}</code></li>
+      <li><b>XML 反转义</b>：<code>unescapeXml</code> 处理 <code>&amp;lt;</code> / <code>&amp;#38;</code> / <code>&amp;#x26;</code> 等</li>
+      <li><b>自动跳表头</b>：<code>readXlsxRows(file, skipHeader)</code></li>
+    </ul>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="s8">
+    <h2><span class="n">8</span>渲染管线（Canvas / SVG）</h2>
+    <h3>8.1 布局计算 layoutMetrics</h3>
+    <pre><code>function layoutMetrics(qr, st, textLine){
+  const modules   = qr.size + st.quietZone * 2;   <span class="c">// 模块数（含静区）</span>
+  const modulePx  = st.sizePx / modules;          <span class="c">// 每模块像素</span>
+  const textPx    = textLine ? Math.round(st.textSize * 1.6) : 0;
+  return { modules, modulePx, W: st.sizePx, H: st.sizePx + textPx };
+}</code></pre>
+
+    <h3>8.2 Canvas 路径</h3>
+    <p><code>renderCanvas(row, st, scale)</code> → <code>{canvas, qr}</code>。绘制顺序：</p>
+    <ol>
+      <li><code>drawModules</code> —— 遍历矩阵画模块，支持三种样式（方形 / 圆点 / 圆角，圆角用 <code>roundRect</code>）</li>
+      <li><code>drawLogo</code> —— 居中画 LOGO，按 <code>logoRatio × sizePx</code> 定尺寸；<code>logoPad</code> 为真时先垫一块白底</li>
+      <li><code>drawText</code> —— 上/下绘制展示文字，超长自动缩字（<code>fitText</code>）</li>
+    </ol>
+
+    <h3>8.3 SVG 路径</h3>
+    <p><code>renderSVG(row, st)</code> 输出字符串。<b>合并相邻模块为整段 <code>&lt;rect&gt;</code></b> 以减小体积；文字用 <code>&lt;text&gt;</code> + <code>escapeXml()</code> 转义。</p>
+    <div class="warn">
+      <b>注意 SVG 的能力差异：</b> SVG 是纯矢量二维码，<b>不含 LOGO、不含展示文字</b>（设计如此）。界面上已明示这一限制。
+    </div>
+
+    <h3>8.4 三处调用的一致性</h3>
+    <table>
+      <thead><tr><th>调用方</th><th>倍率</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>updatePreview</code></td><td><code>min(4, max(2, dpr))</code></td><td>屏幕预览</td></tr>
+        <tr><td><code>exportOne</code></td><td>3×</td><td>单张下载</td></tr>
+        <tr><td><code>exportZip</code></td><td>3×</td><td>批量打包</td></tr>
+      </tbody>
+    </table>
+    <p>三处共用同一 <code>renderCanvas</code>，保证「预览所见 = 导出的样子」。</p>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="s9">
+    <h2><span class="n">9</span>ZIP 打包器实现</h2>
+    <p>手写 PKZIP 格式，零第三方库。结构：本地文件头 + 数据 + 中央目录 + 中央目录结尾。</p>
+
+    <h3>9.1 CRC32</h3>
+    <pre><code>const CRC_TABLE = (() =&gt; { ... })();   <span class="c">// 预计算 256 项查表</span>
+function crc32(buf){
+  let c = 0xFFFFFFFF;
+  for(let i = 0; i &lt; buf.length; i++)
+    c = CRC_TABLE[(c ^ buf[i]) &amp; 0xFF] ^ (c &gt;&gt;&gt; 8);
+  return (c ^ 0xFFFFFFFF) &gt;&gt;&gt; 0;
+}</code></pre>
+
+    <h3>9.2 压缩 deflateRaw</h3>
+    <pre><code>async function deflateRaw(buf){
+  if(typeof CompressionStream === "undefined") return null;  <span class="c">// → 调用方回退存储模式</span>
+  const cs = new CompressionStream("deflate-raw");
+  const w = cs.writable.getWriter(); w.write(buf); w.close();
+  return new Uint8Array(await new Response(cs.readable).arrayBuffer());
+}</code></pre>
+
+    <h3>9.3 关键字段</h3>
+    <table>
+      <thead><tr><th>字段</th><th>值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>版本</td><td>20</td><td>2.0，足够</td></tr>
+        <tr><td>通用标志</td><td><code>0x0800</code></td><td>bit 11 = UTF-8 文件名（支持中文名）</td></tr>
+        <tr><td>压缩方法</td><td>8 或 0</td><td>deflate / store</td></tr>
+        <tr><td>时间戳</td><td><code>dosDateTime()</code></td><td>DOS 格式两字节时间 + 两字节日期</td></tr>
+      </tbody>
+    </table>
+
+    <h3>9.4 偏移量与重名</h3>
+    <p><code>offset</code> 累计每个本地头 + 数据的长度，写进中央目录。重名文件自动追加 <code>(2)</code>、<code>(3)</code> 后缀，不覆盖。</p>
+    <div class="tip">
+      <b>已验证：</b> CRC32 对齐标准向量（<code>"123456789"</code> → <code>cbf43926</code>）；ZIP 经 Python <code>zipfile</code> 校验，中文文件名与内容无损。
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="s10">
+    <h2><span class="n">10</span>预览清晰度系统</h2>
+    <p>二维码是高频黑白图形，用 CSS 强行放大一定会糊。解法是<b>高倍率渲染 + 等比缩小</b>。</p>
+    <pre><code>const boxW = Math.max(240, Math.min(560, elSheet.parentElement.clientWidth - 72));
+const cssScale = Math.min(1, boxW / st.sizePx);        <span class="c">// 显示尺寸</span>
+const showW   = Math.round(st.sizePx * cssScale);
+const dpr     = window.devicePixelRatio || 1;
+const renderScale = Math.min(4, Math.max(2, dpr));     <span class="c">// 渲染倍率，2×–4×</span>
+
+const r = renderCanvas(row, st, renderScale);          <span class="c">// 画布按高倍率渲染</span>
+r.canvas.style.width = showW + "px";                   <span class="c">// CSS 缩到显示尺寸</span></code></pre>
+
+    <h3>关键设计：sizePx 与 scale 解耦</h3>
+    <ul>
+      <li><code>st.sizePx</code> —— 逻辑尺寸（用户设定的输出边长）</li>
+      <li><code>scale</code> —— 渲染倍率（只影响预览画布的像素量）</li>
+    </ul>
+    <p>旧实现用固定 1× 渲染再 CSS 放大 → 模糊；现在按 <code>min(4, max(2, dpr))</code> 渲染，像素量提升 4–16 倍后降采样，<b>放大看也锐利</b>。</p>
+  </div>
+
+  <!-- 11 -->
+  <div class="card" id="s11">
+    <h2><span class="n">11</span>性能分析与量级</h2>
+    <p>在 Node + DOM 桩环境下实测（真机通常更快，仅作量级参考）：</p>
+
+    <table>
+      <thead><tr><th>操作</th><th>规模</th><th>耗时</th><th>单条</th></tr></thead>
+      <tbody>
+        <tr><td>generateQR（URL，ECC M）</td><td>1000 条</td><td>~500 ms</td><td>0.50 ms</td></tr>
+        <tr><td>generateQR（中文，ECC H）</td><td>1000 条</td><td>~955 ms</td><td>0.96 ms</td></tr>
+        <tr><td>renderSVG</td><td>500 条</td><td>~255 ms</td><td>0.51 ms</td></tr>
+        <tr><td>renderCanvas（scale=4）</td><td>500 条</td><td>~280 ms</td><td>0.56 ms</td></tr>
+        <tr><td>parseTextRows</td><td>1000 行</td><td>~1.5 ms</td><td>—</td></tr>
+        <tr><td>parseTextRows</td><td>10000 行</td><td>~10 ms</td><td>—</td></tr>
+        <tr><td>crc32</td><td>2000 次</td><td>~1.4 ms</td><td>—</td></tr>
+        <tr><td>buildZip</td><td>500 个 SVG</td><td>~300 ms</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h3>结论</h3>
+    <ul>
+      <li><b>瓶颈只在 QR 编码本身</b>；ECC H 约为 M 的两倍耗时（纠错码字更多）</li>
+      <li>解析与 CRC 可忽略不计</li>
+      <li>1000 条规模「生成 + 渲染 + 打包」整链 &lt; 1 秒</li>
+    </ul>
+
+    <h3>主线程阻塞的缓解措施</h3>
+    <ul>
+      <li><code>exportZip</code> 按 <code>CHUNK = 20</code> 分批 <code>await sleep(0)</code> 让出主线程，同时更新进度条</li>
+      <li><code>renderList</code> 对 &gt; 500 条只渲染前 500 项（<code>LIMIT = 500</code>），<b>导出不受影响</b></li>
+      <li><code>debounce</code> 包裹文本域输入，避免每次按键都全量重解析 + 重绘</li>
+    </ul>
+  </div>
+
+  <!-- 12 -->
+  <div class="card" id="s12">
+    <h2><span class="n">12</span>已知问题与待办</h2>
+    <h3>12.1 设计上的取舍（非缺陷）</h3>
+    <ul>
+      <li><b>SVG 不含 LOGO 与文字</b> —— 矢量输出保持纯粹，交由下游排版</li>
+      <li><b>无 undo 栈</b> —— 数据整理按钮直接改写文本域，可用 <span class="badge">复制数据</span> 先备份</li>
+      <li><b>旧浏览器 ZIP 不压缩</b> —— 回退存储模式，体积变大但可解压</li>
+    </ul>
+
+    <h3>12.2 潜在风险点</h3>
+    <ul>
+      <li>超大 LOGO（接近 25%）+ 低容错率 = 可能扫不出。UI 已提示「建议配 H 容错」</li>
+      <li>CSV 模板在 Excel 直接双击时，个别环境中文可能乱码（BOM 已加；必要时用「从文本导入」并选 UTF-8）</li>
+    </ul>
+
+    <h3>12.3 可优化方向</h3>
+    <ul>
+      <li>把 <code>generateQR</code> 放进 <code>Web Worker</code>，彻底消除大数据集的界面卡顿</li>
+      <li>增加二维码「批量预览缩略图墙」</li>
+      <li>支持从粘贴板图片直接取 LOGO</li>
+    </ul>
+  </div>
+
+  <!-- 13 -->
+  <div class="card" id="s13">
+    <h2><span class="n">13</span>扩展指南</h2>
+    <h3>13.1 新增一种点样式（例：菱形）</h3>
+    <ol>
+      <li>在 <code>#dotStyle</code> 的 <code>&lt;select&gt;</code> 里加一个 <code>&lt;option value="diamond"&gt;菱形&lt;/option&gt;</code></li>
+      <li>在 <code>drawModules</code> 的样式分支里加 <code>else if(st.dotStyle === "diamond")</code> 分支，用 <code>ctx</code> 画菱形路径</li>
+      <li>SVG 路径（<code>renderSVG</code>）同步加对应逻辑，保证两种输出一致</li>
+    </ol>
+
+    <h3>13.2 新增一种导出格式（例：WebP）</h3>
+    <ol>
+      <li>导出区域加 <code>&lt;button data-v="webp"&gt;WebP&lt;/button&gt;</code></li>
+      <li><code>state.fmt</code> 会通过 <code>seg</code> 的通用事件自动更新</li>
+      <li>在 <code>exportOne</code> / <code>exportZip</code> 里把 MIME 分支补上 <code>"image/webp"</code></li>
+      <li>确认 <code>canvasToBlob</code> 支持该类型（现代浏览器均支持）</li>
+    </ol>
+
+    <h3>13.3 新增一格「数据整理」按钮</h3>
+    <pre><code>$("btnXxx").addEventListener("click", () =&gt;
+  applyToRows(a =&gt; a.map(r =&gt; ({ ...r, content: 你的变换(r.content) })))
+);</code></pre>
+    <p><code>applyToRows</code> 内部会调用 <code>setRowsToText</code> 写回并触发 <code>refreshData</code>，你只需提供纯变换函数。</p>
+
+    <h3>13.4 代码风格约定</h3>
+    <ul>
+      <li>2 空格缩进；函数声明用 <code>function name(){}</code></li>
+      <li>所有 DOM 引用走 <code>$("id")</code>，集中在 PART 5 顶部声明</li>
+      <li>注释说明「为什么」，而非「做什么」</li>
+      <li><b>UI 文案必须与代码行为一致</b> —— 不支持的能力要在界面上显式说明，不能含糊</li>
+    </ul>
+  </div>
+
+  <!-- 14 -->
+  <div class="card" id="s14">
+    <h2><span class="n">14</span>调试与自测</h2>
+    <h3>14.1 语法检查</h3>
+    <p>把 <code>&lt;script&gt;</code> 内容抽出后交给 Node：</p>
+    <pre><code>node --check script.js</code></pre>
+
+    <h3>14.2 内核自检（打开即运行）</h3>
+    <p>页面初始化时自动生成一个测试二维码，控制台输出：</p>
+    <pre><code>[自检] QR 内核正常，版本 2，尺寸 25</code></pre>
+
+    <h3>14.3 id 连通性检查</h3>
+    <p>用正则抽取 HTML 的 <code>id</code> 与 JS 的 <code>$("...")</code>，两边做集合比对，应「无缺、无余」。当前为 <b>51 / 51 完全配对</b>。</p>
+
+    <h3>14.4 二维码正确性（权威验证）</h3>
+    <p>把 <code>generateQR</code> 的矩阵导出为位图，交给<b>主流扫码 App 同款算法</b> ZXing 解码比对原文：</p>
+    <pre><code>import zxingcpp
+res = zxingcpp.read_barcode(image)
+assert res.text == original</code></pre>
+    <div class="danger">
+      <b>不要用 OpenCV 的 <code>QRCodeDetector</code> 判断生成器对错。</b> 它在版本 11+ 的密集二维码上会大量误判 —— 曾出现「本工具生成 10/50 失败」的假警报，实际换成 ZXing 后 <b>50/50 全通过</b>。这是 OpenCV 解码器弱，不是生成器错。
+    </div>
+
+    <h3>14.5 往返自测（CSV 不变量）</h3>
+    <pre><code>const rows = [ {name:'a,b', content:'x,y'},
+               {name:'q"t', content:'line1\nline2'} ];
+setRowsToText(rows);
+deepEqual(parseTextRows(elDataInput.value), rows);  <span class="c">// 必须相等</span></code></pre>
+
+    <h3>14.6 在 Node 里跑主脚本的要点</h3>
+    <ul>
+      <li>脚本区间用 <code>findIndex(l =&gt; l.trim() === "&lt;script&gt;")</code> <b>自定位</b>，别写死行号</li>
+      <li>用 DOM 桩 + <code>new Function(...)</code> 执行；<b>测试代码要注入到 IIFE 内最后的 <code>})();</code> 之前</b>，否则拿不到内部作用域</li>
+      <li>Node 22 里 <code>globalThis.navigator</code> 只读；<code>"use strict"</code> 下隐式全局会抛错</li>
+      <li>canvas 桩记得补 <code>arcTo</code> 等方法</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    二维码批量生成工具 <span class="ver">Ver 1.0</span> &nbsp;·&nbsp; Powered by Yulai @2026 &nbsp;·&nbsp; E-mail：<a href="mailto:liyulai@qq.com">liyulai@qq.com</a>
+  </div>
+
+</div>
+</body>
+</html>

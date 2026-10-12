@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>二维码批量生成工具（离线版）</title>
+<style>
+  :root{
+    --bg:#f5f6f8;
+    --panel:#ffffff;
+    --line:#e3e6ec;
+    --text:#1f2430;
+    --sub:#6b7280;
+    --accent:#2f6bff;
+    --accent-dark:#1f4fd8;
+    --ok:#16a34a;
+    --warn:#d97706;
+    --err:#dc2626;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Segoe UI","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px;
+    line-height:1.5;
+  }
+  .topbar{
+    background:var(--panel);
+    border-bottom:1px solid var(--line);
+    padding:14px 22px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+    position:sticky;
+    top:0;
+    z-index:20;
+  }
+  .topbar h1{font-size:16px;margin:0;font-weight:700;}
+  .topbar .tag{
+    font-size:12px;padding:2px 8px;border-radius:20px;
+    background:#eef3ff;color:var(--accent);font-weight:600;
+  }
+  .topbar .tag.off{background:#e8f8ee;color:var(--ok);}
+  .topbar .spacer{flex:1;}
+
+  .wrap{
+    display:flex;
+    align-items:flex-start;
+    gap:18px;
+    padding:18px 22px 60px;
+    flex-wrap:wrap;
+  }
+  .col-left{width:400px;min-width:320px;display:flex;flex-direction:column;gap:16px;}
+  .col-right{flex:1;min-width:380px;display:flex;flex-direction:column;gap:16px;}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+  }
+  .card h2{
+    font-size:14px;
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-weight:600;
+  }
+  .card h2 .idx{
+    width:20px;height:20px;border-radius:6px;background:#eef3ff;color:var(--accent);
+    display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+    flex:none;
+  }
+
+  textarea{
+    width:100%;
+    min-height:180px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    font-family:"Consolas","Courier New",monospace;
+    font-size:13px;
+    line-height:1.6;
+    resize:vertical;
+    color:var(--text);
+    background:#fcfcfe;
+  }
+  textarea:focus{outline:none;border-color:var(--accent);background:#fff;}
+
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .row.tight{gap:6px;}
+  .grow{flex:1;}
+
+  button{
+    font-family:inherit;
+    font-size:13px;
+    padding:7px 13px;
+    border-radius:7px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--text);
+    cursor:pointer;
+    transition:.15s;
+    white-space:nowrap;
+  }
+  button:hover{border-color:#c8d0dd;background:#fafbff;}
+  button:disabled{opacity:.45;cursor:not-allowed;}
+  button.primary{
+    background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;
+  }
+  button.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark);}
+  button.big{padding:10px 18px;font-size:14px;}
+  button.mini{padding:4px 9px;font-size:12px;}
+
+  label.field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--sub);}
+  label.field > span{font-weight:500;}
+  input[type=text],input[type=number],select{
+    font-family:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--line);
+    border-radius:7px;color:var(--text);background:#fff;width:100%;
+  }
+  input:focus,select:focus{outline:none;border-color:var(--accent);}
+  input[type=color]{
+    width:100%;height:34px;padding:2px;border:1px solid var(--line);border-radius:7px;
+    background:#fff;cursor:pointer;
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+  .seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;}
+  .seg button{border:none;border-radius:0;flex:1;padding:6px 4px;font-size:12px;background:#fff;}
+  .seg button+button{border-left:1px solid var(--line);}
+  .seg button.on{background:var(--accent);color:#fff;font-weight:600;}
+
+  .stats{
+    display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--sub);
+    margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
+  }
+  .stats b{color:var(--text);font-weight:600;}
+  .stats .warn{color:var(--warn);}
+  .stats .err{color:var(--err);}
+
+  .logomesh{display:flex;gap:10px;align-items:center;margin-top:10px;}
+  .logoprev{
+    width:52px;height:52px;border:1px solid var(--line);border-radius:8px;
+    display:flex;align-items:center;justify-content:center;background:#fafbfd;
+    overflow:hidden;flex:none;font-size:11px;color:var(--sub);
+  }
+  .logoprev img{max-width:100%;max-height:100%;display:block;}
+
+  .preview{
+    background:#eef0f4;
+    border-radius:10px;
+    padding:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:340px;
+    border:1px solid var(--line);
+    overflow:auto;
+  }
+  .preview .sheet{
+    background:#fff;border-radius:6px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .preview canvas{display:block;max-width:100%;height:auto;image-rendering:pixelated;}
+
+  .maplist{
+    max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:1px;
+    border:1px solid var(--line);border-radius:8px;
+  }
+  .maprow{
+    display:flex;gap:10px;align-items:center;padding:7px 10px;font-size:12px;
+    background:#fff;
+  }
+  .maprow:nth-child(even){background:#fafbfd;}
+  .maprow .no{color:var(--sub);width:34px;flex:none;font-variant-numeric:tabular-nums;}
+  .maprow .name{width:120px;flex:none;color:var(--accent);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .maprow .val{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,monospace;}
+  .maprow.bad{background:#fff5f5;}
+  .maprow.bad .val{color:var(--err);}
+
+  .hint{font-size:12px;color:var(--sub);line-height:1.6;}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(20,24,32,.55);z-index:100;
+    display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px);
+  }
+  .overlay.show{display:flex;}
+  .ovbox{
+    background:#fff;border-radius:14px;padding:26px 32px;min-width:320px;max-width:90vw;
+    box-shadow:0 12px 48px rgba(0,0,0,.25);text-align:center;
+  }
+  .ovbox .t{font-size:15px;font-weight:600;margin-bottom:6px;}
+  .ovbox .s{font-size:12px;color:var(--sub);margin-bottom:14px;min-height:16px;}
+  .bar{height:6px;background:#eef0f4;border-radius:6px;overflow:hidden;}
+  .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s;border-radius:6px;}
+
+  .footnote{
+    font-size:12px;color:var(--sub);text-align:center;padding:0 22px 30px;
+  }
+  .footnote a{color:var(--accent);text-decoration:none;}
+  .footnote a:hover{text-decoration:underline;}
+
+  .details{border:1px solid var(--line);border-radius:8px;padding:0;overflow:hidden;}
+  .details summary{
+    cursor:pointer;padding:9px 12px;font-size:13px;font-weight:600;background:#fafbfd;
+    list-style:none;
+  }
+  .details summary::-webkit-details-marker{display:none;}
+  .details summary::before{content:"▸ ";color:var(--sub);}
+  .details[open] summary::before{content:"▾ ";}
+  .details[open] .body{padding:12px;border-top:1px solid var(--line);}
+
+  .txtlist{display:flex;flex-direction:column;gap:8px;}
+  .txtline{display:flex;gap:8px;align-items:center;}
+  .txtline .del{flex:none;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>二维码批量生成工具</h1>
+  <span class="tag off">100% 离线</span>
+  <span class="tag">单文件 · 零依赖</span>
+  <div class="spacer"></div>
+  <span class="hint" id="capHint"></span>
+</div>
+
+<div class="wrap">
+  <!-- ============ 左栏 ============ -->
+  <div class="col-left">
+
+    <!-- 1 数据 -->
+    <div class="card">
+      <h2><span class="idx">1</span>二维码数据</h2>
+      <div class="hint" style="margin-bottom:8px;">
+        每行一条，两列用<b>逗号</b>或 <b>Tab</b> 分隔：<br>
+        <code style="font-size:11px;">图片名称, 二维码内容</code>
+        <br>只写一列时，该列视为「内容」，名称自动编号。
+      </div>
+      <textarea id="dataInput" placeholder="门店A-桌贴, https://example.com/a&#10;门店B-海报, https://example.com/b&#10;物料编号M001, 商品编号 A-001&#10;（中文内容也支持）"></textarea>
+
+      <div class="row" style="margin-top:10px;">
+        <button id="btnImportXlsx">导入 Excel / CSV</button>
+        <button id="btnTemplate" class="mini">下载模板</button>
+        <button id="btnCopy" class="mini">复制数据</button>
+        <button id="btnClear" class="mini">清空数据</button>
+        <input type="file" id="fileXlsx" accept=".xlsx,.xls,.csv,.txt" style="display:none">
+      </div>
+
+      <div class="row tight" style="margin-top:8px;">
+        <input type="text" id="findText" placeholder="查找" style="flex:1;min-width:80px;">
+        <input type="text" id="replText" placeholder="替换为" style="flex:1;min-width:80px;">
+        <button id="btnReplace" class="mini">替换</button>
+      </div>
+
+      <div class="row tight" style="margin-top:8px;">
+        <button id="btnTrim" class="mini">去首尾空格</button>
+        <button id="btnDedup" class="mini">去除重复行</button>
+        <button id="btnDropEmpty" class="mini">删除空行</button>
+      </div>
+
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <!-- 2 命名 -->
+    <div class="card">
+      <h2><span class="idx">2</span>图片名称</h2>
+      <div class="hint" style="margin-bottom:8px;">
+        数据里填了<b>名称列</b>时，直接用该名称作文件名。本项仅对<b>名称为空</b>的行生效。
+      </div>
+      <div class="seg" id="nameMode">
+        <button data-v="index" class="on">用数字排序</button>
+        <button data-v="content">用二维码内容</button>
+        <button data-v="custom">自定义</button>
+      </div>
+      <div class="row" style="margin-top:10px;" id="nameCustomWrap" hidden>
+        <input type="text" id="nameCustom" placeholder="自定义名称（将自动加序号）">
+      </div>
+      <div class="hint" style="margin-top:8px;">
+        文件名会自动清洗非法字符 <b>\ / : * ? " &lt; &gt; |</b> 并截断过长内容；重名自动加序号。
+      </div>
+    </div>
+
+    <!-- 3 样式 -->
+    <div class="card">
+      <h2><span class="idx">3</span>样式与尺寸</h2>
+
+      <div class="grid2">
+        <label class="field"><span>尺寸（px）</span>
+          <input type="number" id="sizePx" value="420" min="80" max="4000" step="10">
+        </label>
+        <label class="field"><span>静区边距（模块数）</span>
+          <input type="number" id="quietZone" value="4" min="0" max="16" step="1">
+        </label>
+      </div>
+
+      <div class="grid2" style="margin-top:10px;">
+        <label class="field"><span>前景色</span><input type="color" id="fgColor" value="#000000"></label>
+        <label class="field"><span>背景色</span><input type="color" id="bgColor" value="#ffffff"></label>
+      </div>
+
+      <div class="grid2" style="margin-top:10px;">
+        <label class="field"><span>容错率</span>
+          <select id="ecc">
+            <option value="L">L（7%）</option>
+            <option value="M" selected>M（15%）</option>
+            <option value="Q">Q（25%）</option>
+            <option value="H">H（30%，带 LOGO 建议）</option>
+          </select>
+        </label>
+        <label class="field"><span>圆点样式</span>
+          <select id="dotStyle">
+            <option value="square" selected>方形（标准）</option>
+            <option value="dot">圆点</option>
+            <option value="rounded">圆角</option>
+          </select>
+        </label>
+      </div>
+
+      <details class="details" style="margin-top:12px;">
+        <summary>LOGO 设置</summary>
+        <div class="body">
+          <div class="logomesh">
+            <div class="logoprev" id="logoPrev">无 LOGO</div>
+            <div class="grow">
+              <button id="btnLogo" class="mini">选择 LOGO</button>
+              <button id="btnLogoClear" class="mini">移除</button>
+              <input type="file" id="fileLogo" accept="image/*" style="display:none">
+            </div>
+          </div>
+          <label class="field" style="margin-top:10px;"><span>LOGO 占比 <output id="logoRatioOut">22%</output>（上限 25%）</span>
+            <input type="range" id="logoRatio" min="10" max="25" value="22" step="1" style="width:100%;">
+          </label>
+          <label class="row" style="margin-top:6px;font-size:12px;color:var(--sub);">
+            <input type="checkbox" id="logoPad" checked style="width:auto;"> LOGO 周围加白色留白
+          </label>
+          <div class="hint" style="margin-top:6px;">
+            LOGO 越大越可能影响识别，建议同时把容错率设为 <b>H</b>。
+          </div>
+        </div>
+      </details>
+
+      <details class="details" style="margin-top:10px;">
+        <summary>展示文字</summary>
+        <div class="body">
+          <div class="seg" id="textPos">
+            <button data-v="none" class="on">不显示</button>
+            <button data-v="top">上方</button>
+            <button data-v="bottom">下方</button>
+          </div>
+          <div class="grid2" style="margin-top:10px;">
+            <label class="field"><span>字号（px）</span>
+              <input type="number" id="textSize" value="20" min="8" max="80" step="1">
+            </label>
+            <label class="field"><span>文字来源</span>
+              <select id="textSrc">
+                <option value="name" selected>用图片名称</option>
+                <option value="content">用二维码内容</option>
+                <option value="fixed">固定文案</option>
+              </select>
+            </label>
+          </div>
+          <label class="field" style="margin-top:10px;" id="textFixedWrap" hidden>
+            <span>固定文案</span>
+            <input type="text" id="textFixed" placeholder="所有二维码显示同一行文字">
+          </label>
+        </div>
+      </details>
+    </div>
+
+    <!-- 4 导出 -->
+    <div class="card">
+      <h2><span class="idx">4</span>导出</h2>
+      <label class="field"><span>输出格式</span>
+        <div class="seg" id="fmt">
+          <button data-v="png" class="on">PNG</button>
+          <button data-v="jpg">JPG</button>
+          <button data-v="svg">SVG</button>
+        </div>
+      </label>
+      <div class="hint" style="margin-top:8px;" id="fmtHint">
+        PNG：无损、支持透明背景，最通用。
+      </div>
+
+      <div class="row" style="margin-top:14px;">
+        <button id="btnPreview" class="grow">刷新预览</button>
+        <button id="btnExportOne" class="grow">下载当前这张</button>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <button id="btnExportZip" class="primary big grow">批量导出（打包为 ZIP）</button>
+      </div>
+
+      <div class="hint" style="margin-top:10px;">
+        生成数量较多时建议分批；全程本地计算，不联网、不上传。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ 右栏 ============ -->
+  <div class="col-right">
+
+    <div class="card">
+      <h2>预览 <span class="hint" id="previewMeta" style="font-weight:400;margin-left:auto;"></span></h2>
+      <div class="preview"><div class="sheet" id="sheet"></div></div>
+      <div class="row" style="margin-top:10px;">
+        <button id="btnPrev" class="mini">← 上一张</button>
+        <span class="hint" id="navInfo">1 / 0</span>
+        <button id="btnNext" class="mini">下一张 →</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>文件清单 <span class="hint" style="font-weight:400;margin-left:auto;" id="listCount"></span></h2>
+      <div class="maplist" id="mapList"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footnote">
+  <b>二维码批量生成工具（离线版）</b> · 纯前端本地运算，无任何网络请求 · 可断网使用验证<br>
+  Powered by Yulai © 2026
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="ovbox">
+    <div class="t" id="ovTitle">处理中…</div>
+    <div class="s" id="ovSub"></div>
+    <div class="bar"><i id="ovBar"></i></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =========================================================================
+   二维码批量生成工具（离线版）
+   1) QR 生成内核：端口自 Nayuki 的 QR Code generator（MIT）思路，纯 JS 实现
+   2) Excel 解析：自研 ZIP 解析 + DecompressionStream + xlsx XML 抽取
+   3) ZIP 打包：手写 PKZIP 格式（CRC32 + CompressionStream）
+   全部在浏览器本地完成，无网络请求。
+   ========================================================================= */
+(function(){
+
+/* ======================================================================
+   PART 1 · QR 码生成内核
+   ====================================================================== */
+
+// —— 数学与工具 ——
+function mulmod(x, y, n){ return (x * y) % n; }
+
+// QR 的 GF(256) 运算
+const GF_EXP = new Uint8Array(512), GF_LOG = new Uint8Array(256);
+(function(){
+  let x = 1;
+  for(let i = 0; i < 255; i++){
+    GF_EXP[i] = x;
+    GF_LOG[x] = i;
+    x <<= 1;
+    if(x & 0x100) x ^= 0x11D;
+  }
+  for(let i = 255; i < 512; i++) GF_EXP[i] = GF_EXP[i - 255];
+})();
+function gfMul(a, b){
+  if(a === 0 || b === 0) return 0;
+  return GF_EXP[GF_LOG[a] + GF_LOG[b]];
+}
+
+// —— 生成多项式（用于 Reed-Solomon）——
+function rsGenPoly(degree){
+  const result = new Uint8Array(degree);
+  result[degree - 1] = 1;
+  let root = 1;
+  for(let i = 0; i < degree; i++){
+    for(let j = 0; j < degree; j++){
+      result[j] = gfMul(result[j], root);
+      if(j + 1 < degree) result[j] ^= result[j + 1];
+    }
+    root = gfMul(root, 0x02);
+  }
+  return result;
+}
+function rsComputeDivisor(degree){ return rsGenPoly(degree); }
+function rsComputeRemainder(data, divisor){
+  const result = new Uint8Array(divisor.length);
+  for(const b of data){
+    const factor = b ^ result[0];
+    result.copyWithin(0, 1);
+    result[result.length - 1] = 0;
+    for(let i = 0; i < divisor.length; i++) result[i] ^= gfMul(divisor[i], factor);
+  }
+  return result;
+}
+
+// —— 容量表（版本 1..40） ——
+// 行 = 版本（下标即版本号，0 位置为占位）；列 = [L, M, Q, H]
+const ECC_CODEWORDS_PER_BLOCK = [
+  [-1, -1, -1, -1],  // 占位：版本 0
+  [   7,   10,   13,   17],  // 1
+  [  10,   16,   22,   28],  // 2
+  [  15,   26,   18,   22],  // 3
+  [  20,   18,   26,   16],  // 4
+  [  26,   24,   18,   22],  // 5
+  [  18,   16,   24,   28],  // 6
+  [  20,   18,   18,   26],  // 7
+  [  24,   22,   22,   26],  // 8
+  [  30,   22,   20,   24],  // 9
+  [  18,   26,   24,   28],  // 10
+  [  20,   30,   28,   24],  // 11
+  [  24,   22,   26,   28],  // 12
+  [  26,   22,   24,   22],  // 13
+  [  30,   24,   20,   24],  // 14
+  [  22,   24,   30,   24],  // 15
+  [  24,   28,   24,   30],  // 16
+  [  28,   28,   28,   28],  // 17
+  [  30,   26,   28,   28],  // 18
+  [  28,   26,   26,   26],  // 19
+  [  28,   26,   30,   28],  // 20
+  [  28,   26,   28,   30],  // 21
+  [  28,   28,   30,   24],  // 22
+  [  30,   28,   30,   30],  // 23
+  [  30,   28,   30,   30],  // 24
+  [  26,   28,   30,   30],  // 25
+  [  28,   28,   28,   30],  // 26
+  [  30,   28,   30,   30],  // 27
+  [  30,   28,   30,   30],  // 28
+  [  30,   28,   30,   30],  // 29
+  [  30,   28,   30,   30],  // 30
+  [  30,   28,   30,   30],  // 31
+  [  30,   28,   30,   30],  // 32
+  [  30,   28,   30,   30],  // 33
+  [  30,   28,   30,   30],  // 34
+  [  30,   28,   30,   30],  // 35
+  [  30,   28,   30,   30],  // 36
+  [  30,   28,   30,   30],  // 37
+  [  30,   28,   30,   30],  // 38
+  [  30,   28,   30,   30],  // 39
+  [  30,   28,   30,   30]  // 40
+];
+
+// 纠错块数量表（行 = 版本，列 = [L, M, Q, H]）
+const NUM_ERROR_CORRECTION_BLOCKS = [
+  [-1, -1, -1, -1],  // 占位：版本 0
+  [   1,    1,    1,    1],  // 1
+  [   1,    1,    1,    1],  // 2
+  [   1,    1,    2,    2],  // 3
+  [   1,    2,    2,    4],  // 4
+  [   1,    2,    4,    4],  // 5
+  [   2,    4,    4,    4],  // 6
+  [   2,    4,    6,    5],  // 7
+  [   2,    4,    6,    6],  // 8
+  [   2,    5,    8,    8],  // 9
+  [   4,    5,    8,    8],  // 10
+  [   4,    5,    8,   11],  // 11
+  [   4,    8,   10,   11],  // 12
+  [   4,    9,   12,   16],  // 13
+  [   4,    9,   16,   16],  // 14
+  [   6,   10,   12,   18],  // 15
+  [   6,   10,   17,   16],  // 16
+  [   6,   11,   16,   19],  // 17
+  [   6,   13,   18,   21],  // 18
+  [   7,   14,   21,   25],  // 19
+  [   8,   16,   20,   25],  // 20
+  [   8,   17,   23,   25],  // 21
+  [   9,   17,   23,   34],  // 22
+  [   9,   18,   25,   30],  // 23
+  [  10,   20,   27,   32],  // 24
+  [  12,   21,   29,   35],  // 25
+  [  12,   23,   34,   37],  // 26
+  [  12,   25,   34,   40],  // 27
+  [  13,   26,   35,   42],  // 28
+  [  14,   28,   38,   45],  // 29
+  [  15,   29,   40,   48],  // 30
+  [  16,   31,   43,   51],  // 31
+  [  17,   33,   45,   54],  // 32
+  [  18,   35,   48,   57],  // 33
+  [  19,   37,   51,   60],  // 34
+  [  19,   38,   53,   63],  // 35
+  [  20,   40,   56,   66],  // 36
+  [  21,   43,   59,   70],  // 37
+  [  22,   45,   62,   74],  // 38
+  [  24,   47,   65,   77],  // 39
+  [  25,   49,   68,   81]  // 40
+];
+// 版本总码字数
+function getNumRawDataModules(ver){
+  let result = (16 * ver + 128) * ver + 64;
+  if(ver >= 2){
+    const numAlign = Math.floor(ver / 7) + 2;
+    result -= (25 * numAlign - 10) * numAlign - 55;
+    if(ver >= 7) result -= 36;
+  }
+  return result;
+}
+function getNumDataCodewords(ver, ecl){
+  const idx = {L:0, M:1, Q:2, H:3}[ecl];
+  return Math.floor(getNumRawDataModules(ver) / 8)
+    - ECC_CODEWORDS_PER_BLOCK[ver][idx] * NUM_ERROR_CORRECTION_BLOCKS[ver][idx];
+}
+// 各等级格式信息位
+const ECL_FORMAT_BITS = { L:1, M:0, Q:3, H:2 };
+const ECL_ORDINAL = { L:0, M:1, Q:2, H:3 };
+
+// —— 分段编码 ——
+// 数字模式
+function encodeNumeric(digits){
+  const bb = { bits: [] };
+  const pushVal = (val, len) => { for(let i = len - 1; i >= 0; i--) bb.bits.push((val >>> i) & 1); };
+  for(let i = 0; i < digits.length; ){
+    const n = Math.min(3, digits.length - i);
+    pushVal(parseInt(digits.substr(i, n), 10), n * 3 + 1);
+    i += n;
+  }
+  return { mode: 'numeric', numChars: digits.length, bits: bb.bits };
+}
+// 字母数字模式
+const ALNUM_CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
+function encodeAlnum(text){
+  const bits = [];
+  const pushVal = (val, len) => { for(let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1); };
+  for(let i = 0; i < text.length; ){
+    const n = Math.min(2, text.length - i);
+    pushVal(
+      n === 2
+        ? ALNUM_CHARSET.indexOf(text.charAt(i)) * 45 + ALNUM_CHARSET.indexOf(text.charAt(i + 1))
+        : ALNUM_CHARSET.indexOf(text.charAt(i)),
+      n === 2 ? 11 : 6
+    );
+    i += n;
+  }
+  return { mode: 'alnum', numChars: text.length, bits };
+}
+// 字节模式（UTF-8）
+function encodeBytes(text){
+  const bytes = new TextEncoder().encode(text);
+  const bits = [];
+  for(const b of bytes) for(let i = 7; i >= 0; i--) bits.push((b >>> i) & 1);
+  return { mode: 'byte', numChars: bytes.length, bits };
+}
+function isNumeric(s){ return /^[0-9]*$/.test(s); }
+function isAlnum(s){
+  for(const c of s) if(ALNUM_CHARSET.indexOf(c) < 0) return false;
+  return true;
+}
+const MODE_BITS = { numeric: 0x1, alnum: 0x2, byte: 0x4 };
+const MODE_COUNT_BITS = {
+  numeric: [10, 12, 14],
+  alnum:   [ 9, 11, 13],
+  byte:    [ 8, 16, 16]
+};
+function numCharCountBits(mode, ver){
+  return MODE_COUNT_BITS[mode][ver <= 9 ? 0 : ver <= 26 ? 1 : 2];
+}
+
+// 选择最优模式并分段（简化：单一最优模式）
+function makeSegments(text){
+  if(text.length === 0) return [];
+  if(isNumeric(text)) return [encodeNumeric(text)];
+  if(isAlnum(text)) return [encodeAlnum(text)];
+  return [encodeBytes(text)];
+}
+
+function getTotalBits(segs, ver){
+  let result = 0;
+  for(const seg of segs){
+    const ccbits = numCharCountBits(seg.mode, ver);
+    if(seg.numChars >= (1 << ccbits)) return Infinity; // 超出该版本容量
+    result += 4 + ccbits + seg.bits.length;
+  }
+  return result;
+}
+function toUtf8ByteArray(str){
+  return Array.from(new TextEncoder().encode(str));
+}
+
+// —— QR 码对象 ——
+function QRCode(version, ecl, dataCodewords, mask){
+  this.version = version;
+  this.ecl = ecl;
+  this.size = version * 4 + 17;
+  this.modules = [];      // 二维 (size x size) 布尔
+  this.isFunction = [];   // 二维：是否功能模块
+  for(let i = 0; i < this.size; i++){
+    this.modules.push(new Array(this.size).fill(false));
+    this.isFunction.push(new Array(this.size).fill(false));
+  }
+  this.drawFunctionPatterns();
+  this.drawCodewords(dataCodewords);
+  if(mask === -1){
+    // 自动选择最优掩码
+    let minPenalty = Infinity;
+    for(let i = 0; i < 8; i++){
+      this.applyMask(i);
+      this.drawFormatBits(i);
+      const penalty = this.getPenaltyScore();
+      if(penalty < minPenalty){ mask = i; minPenalty = penalty; }
+      this.applyMask(i); // 撤销
+    }
+  }
+  if(mask < 0 || mask > 7) throw new Error("掩码越界");
+  this.mask = mask;
+  this.applyMask(mask);
+  this.drawFormatBits(mask);
+}
+QRCode.prototype = {
+  getModule(x, y){
+    return x >= 0 && x < this.size && y >= 0 && y < this.size && this.modules[y][x];
+  },
+  drawFunctionPatterns(){
+    const size = this.size;
+    // 定时图案
+    for(let i = 0; i < size; i++){
+      this.setFunctionModule(6, i, i % 2 === 0);
+      this.setFunctionModule(i, 6, i % 2 === 0);
+    }
+    // 三个定位图案
+    this.drawFinderPattern(3, 3);
+    this.drawFinderPattern(size - 4, 3);
+    this.drawFinderPattern(3, size - 4);
+    // 校正图案
+    const alignPos = this.getAlignmentPatternPositions();
+    const n = alignPos.length;
+    for(let i = 0; i < n; i++){
+      for(let j = 0; j < n; j++){
+        if(!((i === 0 && j === 0) || (i === 0 && j === n - 1) || (i === n - 1 && j === 0)))
+          this.drawAlignmentPattern(alignPos[i], alignPos[j]);
+      }
+    }
+    // 格式与版本信息占位
+    this.drawFormatBits(0);
+    this.drawVersion();
+  },
+  drawFormatBits(mask){
+    const eclBits = ECL_FORMAT_BITS[this.ecl];
+    const data = (eclBits << 3) | mask;
+    let rem = data;
+    for(let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+    const bits = ((data << 10) | rem) ^ 0x5412;
+    // 左上竖
+    for(let i = 0; i <= 5; i++) this.setFunctionModule(8, i, this.getBit(bits, i));
+    this.setFunctionModule(8, 7, this.getBit(bits, 6));
+    this.setFunctionModule(8, 8, this.getBit(bits, 7));
+    this.setFunctionModule(7, 8, this.getBit(bits, 8));
+    for(let i = 9; i < 15; i++) this.setFunctionModule(14 - i, 8, this.getBit(bits, i));
+    // 右上 / 左下
+    for(let i = 0; i < 8; i++) this.setFunctionModule(this.size - 1 - i, 8, this.getBit(bits, i));
+    for(let i = 8; i < 15; i++) this.setFunctionModule(8, this.size - 15 + i, this.getBit(bits, i));
+    this.setFunctionModule(8, this.size - 8, true); // 固定深色模块
+  },
+  drawVersion(){
+    if(this.version < 7) return;
+    let rem = this.version;
+    for(let i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1F25);
+    const bits = (this.version << 12) | rem;
+    for(let i = 0; i < 18; i++){
+      const color = this.getBit(bits, i);
+      const a = this.size - 11 + i % 3;
+      const b = Math.floor(i / 3);
+      this.setFunctionModule(a, b, color);
+      this.setFunctionModule(b, a, color);
+    }
+  },
+  drawFinderPattern(x, y){
+    for(let dy = -4; dy <= 4; dy++){
+      for(let dx = -4; dx <= 4; dx++){
+        const dist = Math.max(Math.abs(dx), Math.abs(dy));
+        const xx = x + dx, yy = y + dy;
+        if(xx >= 0 && xx < this.size && yy >= 0 && yy < this.size)
+          this.setFunctionModule(xx, yy, dist !== 2 && dist !== 4);
+      }
+    }
+  },
+  drawAlignmentPattern(x, y){
+    for(let dy = -2; dy <= 2; dy++)
+      for(let dx = -2; dx <= 2; dx++)
+        this.setFunctionModule(x + dx, y + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+  },
+  setFunctionModule(x, y, isDark){
+    this.modules[y][x] = isDark;
+    this.isFunction[y][x] = true;
+  },
+  getAlignmentPatternPositions(){
+    if(this.version === 1) return [];
+    const numAlign = Math.floor(this.version / 7) + 2;
+    const step = (this.version === 32) ? 26
+      : Math.ceil((this.version * 4 + 4) / (numAlign * 2 - 2)) * 2;
+    const result = [6];
+    for(let pos = this.size - 7; result.length < numAlign; pos -= step) result.splice(1, 0, pos);
+    return result;
+  },
+  drawCodewords(data){
+    let i = 0;
+    for(let right = this.size - 1; right >= 1; right -= 2){
+      if(right === 6) right = 5;
+      for(let vert = 0; vert < this.size; vert++){
+        for(let j = 0; j < 2; j++){
+          const x = right - j;
+          const upward = ((right + 1) & 2) === 0;
+          const y = upward ? this.size - 1 - vert : vert;
+          if(!this.isFunction[y][x] && i < data.length * 8){
+            this.modules[y][x] = this.getBit(data[i >>> 3], 7 - (i & 7));
+            i++;
+          }
+        }
+      }
+    }
+  },
+  applyMask(mask){
+    for(let y = 0; y < this.size; y++){
+      for(let x = 0; x < this.size; x++){
+        let invert;
+        switch(mask){
+          case 0: invert = (x + y) % 2 === 0; break;
+          case 1: invert = y % 2 === 0; break;
+          case 2: invert = x % 3 === 0; break;
+          case 3: invert = (x + y) % 3 === 0; break;
+          case 4: invert = (Math.floor(x / 3) + Math.floor(y / 2)) % 2 === 0; break;
+          case 5: invert = x * y % 2 + x * y % 3 === 0; break;
+          case 6: invert = (x * y % 2 + x * y % 3) % 2 === 0; break;
+          case 7: invert = ((x + y) % 2 + x * y % 3) % 2 === 0; break;
+          default: throw new Error("掩码越界");
+        }
+        if(!this.isFunction[y][x] && invert) this.modules[y][x] = !this.modules[y][x];
+      }
+    }
+  },
+  getPenaltyScore(){
+    let result = 0;
+    const size = this.size;
+    // 横向连续
+    for(let y = 0; y < size; y++){
+      let runColor = false, runX = 0;
+      const runHistory = [0,0,0,0,0,0,0];
+      for(let x = 0; x < size; x++){
+        if(this.modules[y][x] === runColor){
+          runX++;
+          if(runX === 5) result += 3;
+          else if(runX > 5) result++;
+        }else{
+          this.finderPenaltyAddHistory(runX, runHistory);
+          if(!runColor) result += this.finderPenaltyCountPatterns(runHistory) * 40;
+          runColor = this.modules[y][x];
+          runX = 1;
+        }
+      }
+      result += this.finderPenaltyTerminateAndCount(runColor, runX, runHistory) * 40;
+    }
+    // 纵向连续
+    for(let x = 0; x < size; x++){
+      let runColor = false, runY = 0;
+      const runHistory = [0,0,0,0,0,0,0];
+      for(let y = 0; y < size; y++){
+        if(this.modules[y][x] === runColor){
+          runY++;
+          if(runY === 5) result += 3;
+          else if(runY > 5) result++;
+        }else{
+          this.finderPenaltyAddHistory(runY, runHistory);
+          if(!runColor) result += this.finderPenaltyCountPatterns(runHistory) * 40;
+          runColor = this.modules[y][x];
+          runY = 1;
+        }
+      }
+      result += this.finderPenaltyTerminateAndCount(runColor, runY, runHistory) * 40;
+    }
+    // 2x2 同色块
+    for(let y = 0; y < size - 1; y++){
+      for(let x = 0; x < size - 1; x++){
+        const c = this.modules[y][x];
+        if(c === this.modules[y][x+1] && c === this.modules[y+1][x] && c === this.modules[y+1][x+1])
+          result += 3;
+      }
+    }
+    // 深色占比
+    let dark = 0;
+    for(let y = 0; y < size; y++) for(let x = 0; x < size; x++) if(this.modules[y][x]) dark++;
+    const total = size * size;
+    const k = Math.ceil(Math.abs(dark * 20 - total * 10) / total) - 1;
+    result += k * 10;
+    return result;
+  },
+  finderPenaltyCountPatterns(runHistory){
+    const n = runHistory[1];
+    const core = n > 0 && runHistory[2] === n && runHistory[3] === n * 3 && runHistory[4] === n && runHistory[5] === n;
+    return (core && runHistory[0] >= n * 4 && runHistory[6] >= n ? 1 : 0)
+         + (core && runHistory[6] >= n * 4 && runHistory[0] >= n ? 1 : 0);
+  },
+  finderPenaltyTerminateAndCount(currentRunColor, currentRunLength, runHistory){
+    if(currentRunColor){
+      this.finderPenaltyAddHistory(currentRunLength, runHistory);
+      currentRunLength = 0;
+    }
+    currentRunLength += this.size;
+    this.finderPenaltyAddHistory(currentRunLength, runHistory);
+    return this.finderPenaltyCountPatterns(runHistory);
+  },
+  finderPenaltyAddHistory(currentRunLength, runHistory){
+    if(runHistory[0] === 0) currentRunLength += this.size;
+    runHistory.pop();
+    runHistory.unshift(currentRunLength);
+  },
+  getBit(x, i){ return ((x >>> i) & 1) !== 0; }
+};
+
+// 生成数据码字
+function addEccAndInterleave(data, ver, ecl){
+  const numBlocks = NUM_ERROR_CORRECTION_BLOCKS[ver][ECL_ORDINAL[ecl]];
+  const blockEccLen = ECC_CODEWORDS_PER_BLOCK[ver][ECL_ORDINAL[ecl]];
+  const rawCodewords = Math.floor(getNumRawDataModules(ver) / 8);
+  const numShortBlocks = numBlocks - rawCodewords % numBlocks;
+  const shortBlockLen = Math.floor(rawCodewords / numBlocks);
+
+  const blocks = [];
+  const rsDiv = rsComputeDivisor(blockEccLen);
+  for(let i = 0, k = 0; i < numBlocks; i++){
+    const dat = data.slice(k, k + shortBlockLen - blockEccLen + (i < numShortBlocks ? 0 : 1));
+    k += dat.length;
+    const ecc = rsComputeRemainder(dat, rsDiv);
+    if(i < numShortBlocks) dat.push(0);
+    blocks.push(dat.concat(Array.from(ecc)));
+  }
+
+  const result = [];
+  for(let i = 0; i < blocks[0].length; i++){
+    for(let j = 0; j < blocks.length; j++){
+      if(i !== shortBlockLen - blockEccLen || j >= numShortBlocks)
+        result.push(blocks[j][i]);
+    }
+  }
+  return result;
+}
+
+// 主入口：文本 → 模块矩阵
+function generateQR(text, ecl){
+  ecl = ecl || 'M';
+  const segs = makeSegments(text);
+  // 选择最小可用版本
+  let version, dataUsedBits;
+  for(version = 1; ; version++){
+    const capacityBits = getNumDataCodewords(version, ecl) * 8;
+    const used = getTotalBits(segs, version);
+    if(used <= capacityBits){ dataUsedBits = used; break; }
+    if(version >= 40) throw new Error("内容过长，超出二维码容量");
+  }
+
+  // 拼装比特流
+  const bb = [];
+  const appendBits = (val, len) => { for(let i = len - 1; i >= 0; i--) bb.push((val >>> i) & 1); };
+  for(const seg of segs){
+    appendBits(MODE_BITS[seg.mode], 4);
+    appendBits(seg.numChars, numCharCountBits(seg.mode, version));
+    for(const b of seg.bits) bb.push(b);
+  }
+  const dataCapacityBits = getNumDataCodewords(version, ecl) * 8;
+  appendBits(0, Math.min(4, dataCapacityBits - bb.length)); // 终止符
+  appendBits(0, (8 - bb.length % 8) % 8);                   // 补齐字节
+  for(let padByte = 0xEC; bb.length < dataCapacityBits; padByte ^= 0xEC ^ 0x11) appendBits(padByte, 8);
+
+  // 转码字
+  const dataCodewords = new Array(bb.length / 8).fill(0);
+  bb.forEach((b, i) => dataCodewords[i >>> 3] |= b << (7 - (i & 7)));
+
+  const allCodewords = addEccAndInterleave(dataCodewords, version, ecl);
+  return new QRCode(version, ecl, allCodewords, -1);
+}
+
+/* ======================================================================
+   PART 2 · Excel (.xlsx) 轻量解析
+   ====================================================================== */
+
+// —— ZIP 读取（只读 STORE / DEFLATE）——
+async function inflateRaw(bytes){
+  if(typeof DecompressionStream === "undefined") throw new Error("浏览器不支持 DecompressionStream，无法解压 xlsx");
+  const ds = new DecompressionStream("deflate-raw");
+  const w = ds.writable.getWriter();
+  w.write(bytes); w.close();
+  return new Uint8Array(await new Response(ds.readable).arrayBuffer());
+}
+function readU16(b, p){ return b[p] | (b[p+1] << 8); }
+function readU32(b, p){ return (b[p] | (b[p+1] << 8) | (b[p+2] << 16) | (b[p+3] << 24)) >>> 0; }
+
+async function unzip(buffer){
+  const b = new Uint8Array(buffer);
+  // 找 EOCD
+  let eocd = -1;
+  for(let i = b.length - 22; i >= 0 && i >= b.length - 22 - 65536; i--){
+    if(b[i] === 0x50 && b[i+1] === 0x4b && b[i+2] === 0x05 && b[i+3] === 0x06){ eocd = i; break; }
+  }
+  if(eocd < 0) throw new Error("不是有效的 xlsx（ZIP）文件");
+  const totalEntries = readU16(b, eocd + 10);
+  let p = readU32(b, eocd + 16);
+
+  const files = {};
+  for(let n = 0; n < totalEntries; n++){
+    if(readU32(b, p) !== 0x02014b50) break;
+    const method = readU16(b, p + 10);
+    const compSize = readU32(b, p + 20);
+    const nameLen = readU16(b, p + 28);
+    const extraLen = readU16(b, p + 30);
+    const commentLen = readU16(b, p + 32);
+    const localOff = readU32(b, p + 42);
+    const name = new TextDecoder("utf-8").decode(b.subarray(p + 46, p + 46 + nameLen));
+    p += 46 + nameLen + extraLen + commentLen;
+
+    // 读本地头定位数据
+    const lNameLen = readU16(b, localOff + 26);
+    const lExtraLen = readU16(b, localOff + 28);
+    const dataStart = localOff + 30 + lNameLen + lExtraLen;
+    const raw = b.subarray(dataStart, dataStart + compSize);
+    files[name] = { method, raw };
+  }
+  // 解压需要的文件
+  const out = {};
+  for(const key of Object.keys(files)){
+    const f = files[key];
+    out[key] = f.method === 0 ? f.raw : await inflateRaw(f.raw);
+  }
+  return out;
+}
+
+function decodeXml(bytes){ return new TextDecoder("utf-8").decode(bytes); }
+
+// 解析 sharedStrings.xml
+function parseSharedStrings(xml){
+  if(!xml) return [];
+  const out = [];
+  const siRe = /<si\b[^>]*>([\s\S]*?)<\/si>/g;
+  let m;
+  while((m = siRe.exec(xml))){
+    const inner = m[1];
+    let text = "";
+    const tRe = /<t\b[^>]*>([\s\S]*?)<\/t>/g;
+    let tm;
+    while((tm = tRe.exec(inner))) text += unescapeXml(tm[1]);
+    out.push(text);
+  }
+  return out;
+}
+function unescapeXml(s){
+  return s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'").replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(+d))
+          .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+          .replace(/&amp;/g, "&");
+}
+function colToIndex(ref){
+  const m = /^([A-Z]+)(\d+)$/.exec(ref);
+  if(!m) return { col: 0, row: 0 };
+  let col = 0;
+  for(const ch of m[1]) col = col * 26 + (ch.charCodeAt(0) - 64);
+  return { col: col - 1, row: parseInt(m[2], 10) - 1 };
+}
+// 解析第一个 worksheet，取所有单元格，返回行数组
+function parseSheet(xml, sharedStrings){
+  const rows = [];
+  const rowRe = /<row\b[^>]*>([\s\S]*?)<\/row>/g;
+  let rm;
+  while((rm = rowRe.exec(xml))){
+    const inner = rm[1];
+    const cells = [];
+    const cRe = /<c\b([^>]*)\/>|<c\b([^>]*)>([\s\S]*?)<\/c>/g;
+    let cm;
+    while((cm = cRe.exec(inner))){
+      const attrs = cm[1] || cm[2] || "";
+      const body = cm[3] || "";
+      const refM = /\br="([A-Z]+\d+)"/.exec(attrs);
+      const typeM = /\bt="([^"]+)"/.exec(attrs);
+      const type = typeM ? typeM[1] : "n";
+      const colIdx = refM ? colToIndex(refM[1]).col : cells.length;
+
+      let value = "";
+      if(type === "inlineStr"){
+        const im = /<is\b[^>]*>([\s\S]*?)<\/is>/.exec(body);
+        if(im){
+          const tRe = /<t\b[^>]*>([\s\S]*?)<\/t>/g; let tm;
+          while((tm = tRe.exec(im[1]))) value += unescapeXml(tm[1]);
+        }
+      }else{
+        const vm = /<v\b[^>]*>([\s\S]*?)<\/v>/.exec(body);
+        const rawVal = vm ? unescapeXml(vm[1]) : "";
+        if(type === "s"){ value = sharedStrings[+rawVal] ?? ""; }
+        else if(type === "b"){ value = rawVal === "1" ? "TRUE" : "FALSE"; }
+        else value = rawVal;
+      }
+      while(cells.length < colIdx) cells.push("");
+      cells[colIdx] = value;
+    }
+    rows.push(cells);
+  }
+  return rows;
+}
+
+// 对外：读取 xlsx → 两列数组 [{name, content}]（跳过表头可选）
+async function readXlsxRows(file, skipHeader){
+  const zip = await unzip(await file.arrayBuffer());
+  const shared = zip["xl/sharedStrings.xml"] ? parseSharedStrings(decodeXml(zip["xl/sharedStrings.xml"])) : [];
+
+  // 找第一个 sheet
+  let sheetKey = "xl/worksheets/sheet1.xml";
+  if(!zip[sheetKey]){
+    const keys = Object.keys(zip).filter(k => /^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort();
+    if(!keys.length) throw new Error("xlsx 中找不到工作表");
+    sheetKey = keys[0];
+  }
+  const rows = parseSheet(decodeXml(zip[sheetKey]), shared);
+
+  const out = [];
+  for(const r of rows){
+    const name = String(r[0] ?? "").trim();
+    const content = String(r[1] ?? "").trim();
+    // 内容列为空则跳过整行；名称列可空（留空则回退到自动命名）
+    if(content === "" && name === "") continue;
+    out.push({ name, content });
+  }
+  if(skipHeader && out.length > 0) out.shift();
+  return out;
+}
+
+// CSV / TXT → 两列数组。第一列名称，第二列内容。
+function parseCsvRows(text){
+  const lines = text.replace(/\r\n?/g, "\n").split("\n");
+  const out = [];
+  for(const line of lines){
+    if(line.trim() === "") continue;
+    const cells = splitCsvLine(line);
+    const name = String(cells[0] ?? "").trim();
+    const content = String(cells[1] ?? "").trim();
+    if(name === "" && content === "") continue;
+    out.push({ name, content });
+  }
+  return out;
+}
+function splitCsvLine(line, delim){
+  delim = delim || ",";
+  const out = [];
+  let cur = "", inQ = false;
+  for(let i = 0; i < line.length; i++){
+    const c = line[i];
+    if(inQ){
+      if(c === '"'){
+        if(line[i+1] === '"'){ cur += '"'; i++; }
+        else inQ = false;
+      }else cur += c;
+    }else{
+      if(c === '"') inQ = true;
+      else if(c === delim){ out.push(cur); cur = ""; }
+      else cur += c;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+/* ======================================================================
+   PART 3 · 渲染（Canvas / SVG）
+   ====================================================================== */
+
+const state = {
+  data: [],
+  current: 0,
+  logoImg: null,
+  nameMode: "index",
+  textPos: "none",
+  fmt: "png"
+};
+
+function readStyle(){
+  return {
+    sizePx: clampInt(elSizePx.value, 80, 4000, 420),
+    quietZone: clampInt(elQuietZone.value, 0, 16, 4),
+    fg: elFgColor.value,
+    bg: elBgColor.value,
+    ecc: elEcc.value,
+    dotStyle: elDotStyle.value,
+    logoRatio: clampInt(elLogoRatio.value, 10, 25, 22) / 100,
+    logoPad: elLogoPad.checked,
+    textPos: state.textPos,
+    textSize: clampInt(elTextSize.value, 8, 80, 20),
+    textSrc: elTextSrc.value,
+    textFixed: elTextFixed.value
+  };
+}
+function clampInt(v, lo, hi, dft){
+  let n = parseInt(v, 10);
+  if(isNaN(n)) return dft;
+  return Math.max(lo, Math.min(hi, n));
+}
+
+// 计算矩阵 + 每个模块在最终画布上的几何
+function computeQR(content, ecl){
+  const qr = generateQR(content, ecl);
+  return qr;
+}
+
+// 画布尺寸计算
+function layoutMetrics(qr, st, textLine){
+  const modules = qr.size + st.quietZone * 2;
+  const contentPx = st.sizePx;                 // 二维码本体像素（含静区）
+  const modulePx = contentPx / modules;
+  const textPx = textLine ? Math.round(st.textSize * 1.6) : 0;
+  const W = contentPx;
+  const H = contentPx + textPx;
+  return { modules, modulePx, contentPx, textPx, W, H, textLine };
+}
+
+// 获取展示文字。row = {name, content}
+function getTextFor(row, st){
+  if(st.textPos === "none") return "";
+  if(st.textSrc === "fixed") return st.textFixed;
+  if(st.textSrc === "name") return row.name || "";
+  return row.content || "";
+}
+
+// 绘制到 Canvas（scale 用于高清）。row = {name, content}
+function renderCanvas(row, st, scale){
+  scale = scale || 1;
+  const qr = computeQR(row.content, st.ecc);
+  const textLine = getTextFor(row, st);
+  const m = layoutMetrics(qr, st, textLine);
+
+  const cv = document.createElement("canvas");
+  cv.width = Math.round(m.W * scale);
+  cv.height = Math.round(m.H * scale);
+  const ctx = cv.getContext("2d");
+  ctx.scale(scale, scale);
+
+  // 背景
+  if(st.bg && st.bg !== "transparent"){ ctx.fillStyle = st.bg; ctx.fillRect(0, 0, m.W, m.H); }
+  else { ctx.clearRect(0, 0, m.W, m.H); }
+
+  drawModules(ctx, qr, st, m);
+  if(textLine) drawText(ctx, textLine, st, m);
+
+  return { canvas: cv, qr, metrics: m };
+}
+
+function drawModules(ctx, qr, st, m){
+  const cs = st.sizePx / m.modules;
+  const off = st.quietZone * cs;
+  ctx.fillStyle = st.fg;
+
+  const isFinderArea = (x, y) => {
+    const s = qr.size;
+    if(x < 7 && y < 7) return true;
+    if(x >= s - 7 && y < 7) return true;
+    if(x < 7 && y >= s - 7) return true;
+    return false;
+  };
+
+  if(st.dotStyle === "square"){
+    for(let y = 0; y < qr.size; y++){
+      for(let x = 0; x < qr.size; x++){
+        if(qr.getModule(x, y)){
+          ctx.fillRect(off + x * cs, off + y * cs, Math.ceil(cs), Math.ceil(cs));
+        }
+      }
+    }
+    return;
+  }
+
+  // 圆点 / 圆角（定位图案保持方形，保证可扫）
+  const pad = st.dotStyle === "rounded" ? 0 : cs * 0.08;
+  for(let y = 0; y < qr.size; y++){
+    for(let x = 0; x < qr.size; x++){
+      if(!qr.getModule(x, y)) continue;
+      const px = off + x * cs, py = off + y * cs;
+      if(isFinderArea(x, y)){
+        ctx.fillRect(px, py, Math.ceil(cs), Math.ceil(cs));
+      }else{
+        const r = st.dotStyle === "dot" ? cs / 2 : cs * 0.28;
+        roundRect(ctx, px + pad, py + pad, cs - pad * 2, cs - pad * 2, r);
+        ctx.fill();
+      }
+    }
+  }
+  // 重绘定位图案（清晰）
+  drawFinder(ctx, qr, st, m, 0, 0);
+  drawFinder(ctx, qr, st, m, qr.size - 7, 0);
+  drawFinder(ctx, qr, st, m, 0, qr.size - 7);
+
+  // LOGO
+  if(state.logoImg) drawLogo(ctx, qr, st, m, false);
+}
+function roundRect(ctx, x, y, w, h, r){
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function drawFinder(ctx, qr, st, m, ox, oy){
+  const cs = st.sizePx / m.modules;
+  const off = st.quietZone * cs;
+  ctx.fillStyle = st.fg;
+  // 外框
+  ctx.fillRect(off + ox * cs, off + oy * cs, cs * 7, cs * 7);
+  ctx.fillStyle = st.bg && st.bg !== "transparent" ? st.bg : "#ffffff";
+  ctx.fillRect(off + (ox + 1) * cs, off + (oy + 1) * cs, cs * 5, cs * 5);
+  ctx.fillStyle = st.fg;
+  ctx.fillRect(off + (ox + 2) * cs, off + (oy + 2) * cs, cs * 3, cs * 3);
+}
+function drawLogo(ctx, qr, st, m, isSvg){
+  const cs = st.sizePx / m.modules;
+  const center = st.sizePx / 2;
+  const boxSize = st.sizePx * st.logoRatio;
+  const pad = st.logoPad ? boxSize * 0.10 : 0;
+  // 白底
+  if(st.logoPad){
+    ctx.fillStyle = st.bg && st.bg !== "transparent" ? st.bg : "#ffffff";
+    roundRect(ctx, center - boxSize/2, center - boxSize/2, boxSize, boxSize, boxSize * 0.12);
+    ctx.fill();
+  }
+  const imgSize = boxSize - pad * 2;
+  // 等比缩放
+  const ratio = Math.min(imgSize / state.logoImg.width, imgSize / state.logoImg.height);
+  const w = state.logoImg.width * ratio, h = state.logoImg.height * ratio;
+  ctx.drawImage(state.logoImg, center - w/2, center - h/2, w, h);
+}
+function drawText(ctx, text, st, m){
+  const fs = st.textSize;
+  ctx.font = '600 ' + fs + 'px "Microsoft YaHei","Segoe UI",sans-serif';
+  ctx.fillStyle = st.fg;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const maxW = st.sizePx - st.quietZone * (st.sizePx / m.modules) * 2 - 6;
+  const shown = fitText(ctx, String(text), maxW);
+  ctx.fillText(shown, st.sizePx / 2, st.sizePx + m.textPx / 2, maxW + 2);
+}
+function fitText(ctx, text, maxW){
+  if(ctx.measureText(text).width <= maxW) return text;
+  let lo = 1, hi = text.length;
+  while(lo < hi){
+    const mid = (lo + hi) >> 1;
+    const cut = text.slice(0, mid) + "…";
+    if(ctx.measureText(cut).width <= maxW) lo = mid + 1; else hi = mid;
+  }
+  return text.slice(0, Math.max(1, lo - 1)) + "…";
+}
+
+// SVG 输出。row = {name, content}
+function renderSVG(row, st){
+  const qr = computeQR(row.content, st.ecc);
+  const textLine = getTextFor(row, st);
+  const m = layoutMetrics(qr, st, textLine);
+  const cs = st.sizePx / m.modules;
+  const off = st.quietZone * cs;
+
+  let s = '';
+  s += '<svg xmlns="http://www.w3.org/2000/svg" width="' + m.W + '" height="' + m.H + '" viewBox="0 0 ' + m.W + ' ' + m.H + '">\n';
+  if(st.bg && st.bg !== "transparent")
+    s += '<rect width="' + m.W + '" height="' + m.H + '" fill="' + st.bg + '"/>\n';
+
+  const isFinderArea = (x, y) => {
+    const sz = qr.size;
+    if(x < 7 && y < 7) return true;
+    if(x >= sz - 7 && y < 7) return true;
+    if(x < 7 && y >= sz - 7) return true;
+    return false;
+  };
+
+  s += '<g fill="' + st.fg + '">\n';
+  if(st.dotStyle === "square"){
+    // 合并连续水平段，减小体积
+    for(let y = 0; y < qr.size; y++){
+      let x = 0;
+      while(x < qr.size){
+        if(!qr.getModule(x, y)){ x++; continue; }
+        let x2 = x;
+        while(x2 + 1 < qr.size && qr.getModule(x2 + 1, y)) x2++;
+        s += '<rect x="' + fmt(off + x * cs) + '" y="' + fmt(off + y * cs) + '" width="' + fmt((x2 - x + 1) * cs) + '" height="' + fmt(cs) + '"/>';
+        x = x2 + 1;
+      }
+    }
+  }else{
+    const pad = st.dotStyle === "rounded" ? 0 : cs * 0.08;
+    for(let y = 0; y < qr.size; y++){
+      for(let x = 0; x < qr.size; x++){
+        if(!qr.getModule(x, y)) continue;
+        const px = off + x * cs, py = off + y * cs;
+        if(isFinderArea(x, y)){
+          s += '<rect x="' + fmt(px) + '" y="' + fmt(py) + '" width="' + fmt(cs) + '" height="' + fmt(cs) + '"/>';
+        }else{
+          const r = st.dotStyle === "dot" ? cs / 2 : cs * 0.28;
+          s += '<rect x="' + fmt(px + pad) + '" y="' + fmt(py + pad) + '" width="' + fmt(cs - pad*2) + '" height="' + fmt(cs - pad*2) + '" rx="' + fmt(r) + '"/>';
+        }
+      }
+    }
+  }
+  s += '</g>\n';
+  // 展示文字（上方 / 下方）
+  if(textLine){
+    const fs = st.textSize;
+    const cx = st.sizePx / 2;
+    const cy = st.textPx / 2;
+    s += '<text x="' + fmt(cx) + '" y="' + fmt(cy) + '" fill="' + st.fg + '"'
+       + ' font-family="Microsoft YaHei,Segoe UI,sans-serif" font-size="' + fs + '" font-weight="600"'
+       + ' text-anchor="middle" dominant-baseline="central">' + escapeXml(textLine) + '</text>\n';
+  }
+  s += '</svg>\n';
+  return s;
+}
+function escapeXml(s){
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&apos;" }[c]));
+}
+function fmt(n){ return Math.round(n * 1000) / 1000; }
+
+/* ======================================================================
+   PART 4 · ZIP 打包
+   ====================================================================== */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for(let n = 0; n < 256; n++){
+    let c = n;
+    for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(buf){
+  let c = 0xFFFFFFFF;
+  for(let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+async function deflateRaw(buf){
+  if(typeof CompressionStream === "undefined") return null;
+  try{
+    const cs = new CompressionStream("deflate-raw");
+    const w = cs.writable.getWriter();
+    w.write(buf); w.close();
+    return new Uint8Array(await new Response(cs.readable).arrayBuffer());
+  }catch(e){ return null; }
+}
+function dosDateTime(d){
+  const time = ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() / 2)) & 0xFFFF;
+  const date = (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF;
+  return { time, date };
+}
+function u16(n){ return new Uint8Array([n & 0xFF, (n >>> 8) & 0xFF]); }
+function u32(n){ n = n >>> 0; return new Uint8Array([n & 0xFF, (n >>> 8) & 0xFF, (n >>> 16) & 0xFF, (n >>> 24) & 0xFF]); }
+function concat(arrs){
+  let len = 0; for(const a of arrs) len += a.length;
+  const out = new Uint8Array(len);
+  let p = 0; for(const a of arrs){ out.set(a, p); p += a.length; }
+  return out;
+}
+async function buildZip(entries){
+  const enc = new TextEncoder();
+  const localParts = [], centralParts = [];
+  let offset = 0;
+  const now = dosDateTime(new Date());
+  const used = new Set();
+
+  for(const e of entries){
+    let name = e.name;
+    if(used.has(name)){
+      const dot = name.lastIndexOf(".");
+      const base = dot > 0 ? name.slice(0, dot) : name;
+      const ext = dot > 0 ? name.slice(dot) : "";
+      let n = 2; while(used.has(base + "(" + n + ")" + ext)) n++;
+      name = base + "(" + n + ")" + ext;
+    }
+    used.add(name);
+
+    const nameBytes = enc.encode(name);
+    const data = e.data;
+    const crc = crc32(data);
+    const comp = await deflateRaw(data);
+    const method = comp ? 8 : 0;
+    const stored = comp || data;
+
+    const lh = [];
+    lh.push(u32(0x04034b50), u16(20), u16(0x0800), u16(method));
+    lh.push(u16(now.time), u16(now.date));
+    lh.push(u32(crc), u32(stored.length), u32(data.length));
+    lh.push(u16(nameBytes.length), u16(0), nameBytes);
+    const localHead = concat(lh);
+    localParts.push(localHead, stored);
+
+    const ch = [];
+    ch.push(u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(method));
+    ch.push(u16(now.time), u16(now.date));
+    ch.push(u32(crc), u32(stored.length), u32(data.length));
+    ch.push(u16(nameBytes.length), u16(0), u16(0));
+    ch.push(u16(0), u16(0), u32(0), u32(offset), nameBytes);
+    centralParts.push(concat(ch));
+
+    offset += localHead.length + stored.length;
+  }
+
+  const central = concat(centralParts);
+  const eocd = [];
+  eocd.push(u32(0x06054b50), u16(0), u16(0));
+  eocd.push(u16(entries.length), u16(entries.length));
+  eocd.push(u32(central.length), u32(offset), u16(0));
+  const eocdBytes = concat(eocd);
+
+  return new Blob([...localParts, central, eocdBytes], { type: "application/zip" });
+}
+
+/* ======================================================================
+   PART 5 · 界面逻辑
+   ====================================================================== */
+
+const $ = id => document.getElementById(id);
+const elDataInput = $("dataInput"), elStats = $("stats");
+const elSizePx = $("sizePx"), elQuietZone = $("quietZone"), elFgColor = $("fgColor"),
+      elBgColor = $("bgColor"), elEcc = $("ecc"), elDotStyle = $("dotStyle");
+const elLogoRatio = $("logoRatio"), elLogoRatioOut = $("logoRatioOut"),
+      elLogoPad = $("logoPad"), elLogoPrev = $("logoPrev");
+const elTextSize = $("textSize"), elTextSrc = $("textSrc"), elTextFixed = $("textFixed"),
+      elTextFixedWrap = $("textFixedWrap");
+const elNameMode = $("nameMode"), elNameCustomWrap = $("nameCustomWrap"), elNameCustom = $("nameCustom");
+const elFmt = $("fmt"), elFmtHint = $("fmtHint");
+const elSheet = $("sheet"), elMapList = $("mapList"), elListCount = $("listCount"),
+      elNavInfo = $("navInfo"), elPreviewMeta = $("previewMeta");
+const elOverlay = $("overlay"), elOvTitle = $("ovTitle"), elOvSub = $("ovSub"), elOvBar = $("ovBar");
+const elCapHint = $("capHint");
+
+// —— 数据读取 ——
+// 文本区格式：每行「名称,内容」或「名称<Tab>内容」；若只有一列，则视为内容
+// 按行切分，但引号内的换行不切（避免 CSV 单元格里的换行被拆成两行）
+function splitCsvLines(text){
+  const out = [];
+  let cur = "", inQ = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(c === '"'){ inQ = !inQ; cur += c; }
+    else if((c === "\n" || c === "\r") && !inQ){
+      out.push(cur); cur = "";
+      if(c === "\r" && text[i+1] === "\n") i++; // 吃掉 \r\n 的 \n
+    }else cur += c;
+  }
+  out.push(cur);
+  return out;
+}
+
+function parseTextRows(text){
+  const lines = splitCsvLines(text);
+  const out = [];
+  for(const line of lines){
+    if(line.trim() === "") continue;
+    // 优先按 Tab 分，其次按首个逗号分
+    let name = "", content = "";
+    if(line.indexOf("\t") >= 0){
+      const p = line.split("\t");
+      name = (p[0] || "").trim();
+      content = p.slice(1).join("\t").trim();
+    }else if(line.indexOf(",") >= 0){
+      const cells = splitCsvLine(line);
+      name = String(cells[0] ?? "").trim();
+      content = String(cells.slice(1).join(",") ?? "").trim();
+    }else{
+      content = line.trim();
+    }
+    if(name === "" && content === "") continue;
+    out.push({ name, content });
+  }
+  return out;
+}
+
+function refreshData(){
+  state.data = parseTextRows(elDataInput.value);
+  state.current = Math.min(state.current, Math.max(0, state.data.length - 1));
+  updateStats();
+  renderList();
+  updatePreview();
+}
+
+function updateStats(){
+  const n = state.data.length;
+  const set = new Set(state.data.map(r => r.content));
+  const dup = n - set.size;
+  const tooLong = state.data.filter(r => {
+    try{ generateQR(r.content, elEcc.value); return false; }catch(e){ return true; }
+  }).length;
+  const noContent = state.data.filter(r => r.content === "").length;
+  let html = '<span>共 <b>' + n + '</b> 条数据</span>';
+  html += '<span>唯一 <b>' + set.size + '</b> 条</span>';
+  if(dup > 0) html += '<span class="warn">内容重复 ' + dup + ' 条</span>';
+  if(tooLong > 0) html += '<span class="err">超长 ' + tooLong + ' 条</span>';
+  if(noContent > 0) html += '<span class="err">缺内容 ' + noContent + ' 条</span>';
+  if(n === 0) html = '<span>还没有数据，请填写或导入</span>';
+  elStats.innerHTML = html;
+}
+function updateCapHint(){
+  const n = state.data.length || 0;
+  elCapHint.textContent = n ? ('待生成 ' + n + ' 张') : '';
+}
+
+// —— 文件名生成 ——
+function sanitizeName(s){
+  s = String(s).replace(/[\\/:*?"<>|\x00-\x1f]/g, "_").replace(/\s+/g, " ").trim();
+  if(s.length > 60) s = s.slice(0, 60);
+  if(s === "") s = "qr";
+  return s;
+}
+// row = {name, content}
+function fileNameFor(row, idx){
+  const ext = state.fmt === "jpg" ? ".jpg" : state.fmt === "svg" ? ".svg" : ".png";
+  const pad = String(idx + 1).padStart(3, "0");
+  // 优先使用导入的自定义名称列
+  if(row && row.name) return sanitizeName(row.name) + ext;
+  if(state.nameMode === "content") return sanitizeName(row ? row.content : "") + ext;
+  if(state.nameMode === "custom"){
+    const base = sanitizeName(elNameCustom.value || "qr");
+    return base + "_" + pad + ext;
+  }
+  return "qr_" + pad + ext;
+}
+
+// —— 预览 ——
+let previewCache = null;
+function updatePreview(){
+  if(!state.data.length){
+    elSheet.innerHTML = '<div class="hint" style="padding:40px 20px;text-align:center;">暂无数据<br>在左侧输入或导入数据后即可预览</div>';
+    elNavInfo.textContent = "0 / 0";
+    elPreviewMeta.textContent = "";
+    previewCache = null;
+    return;
+  }
+  const row = state.data[state.current];
+  const st = readStyle();
+  try{
+    // 按容器宽度决定显示尺寸，再以足够倍率渲染，避免放大后模糊
+    const boxW = Math.max(240, Math.min(560, elSheet.parentElement.clientWidth - 72));
+    const cssScale = Math.min(1, boxW / st.sizePx);
+    const showW = Math.round(st.sizePx * cssScale);
+    // 渲染倍率取设备像素比 × 保证至少 2x，最高 4x，平衡清晰度与性能
+    const dpr = window.devicePixelRatio || 1;
+    const renderScale = Math.min(4, Math.max(2, dpr));
+
+    const r = renderCanvas(row, st, renderScale);
+    elSheet.innerHTML = "";
+    r.canvas.style.width = showW + "px";
+    r.canvas.style.height = "auto";
+    elSheet.appendChild(r.canvas);
+    elNavInfo.textContent = (state.current + 1) + " / " + state.data.length;
+    elPreviewMeta.textContent = "版本 " + r.qr.version + " · " + r.qr.size + "×" + r.qr.size + " 模块 · 容错 " + st.ecc;
+    previewCache = { row, st };
+    elSheet.classList.remove("err");
+  }catch(e){
+    elSheet.innerHTML = '<div class="hint" style="padding:30px;color:#dc2626;text-align:center;">生成失败：' + escapeHtml(e.message) + '</div>';
+    elPreviewMeta.textContent = "";
+  }
+  updateCapHint();
+}
+
+// —— 文件清单 ——
+function renderList(){
+  const n = state.data.length;
+  elListCount.textContent = n ? (n + " 个文件") : "";
+  if(!n){ elMapList.innerHTML = '<div class="hint" style="padding:14px;">暂无文件</div>'; return; }
+  const frag = document.createDocumentFragment();
+  const LIMIT = 500;
+  for(let i = 0; i < Math.min(n, LIMIT); i++){
+    const r = state.data[i];
+    const row = document.createElement("div");
+    row.className = "maprow" + (i === state.current ? " cur" : "");
+    row.style.cursor = "pointer";
+    row.innerHTML = '<span class="no">' + (i + 1) + '</span>'
+      + '<span class="name">' + escapeHtml(fileNameFor(r, i)) + '</span>'
+      + '<span class="val">' + escapeHtml(r.content) + '</span>';
+    row.addEventListener("click", () => { state.current = i; updatePreview(); renderList(); });
+    frag.appendChild(row);
+  }
+  elMapList.innerHTML = "";
+  elMapList.appendChild(frag);
+  if(n > LIMIT){
+    const more = document.createElement("div");
+    more.className = "hint";
+    more.style.padding = "10px";
+    more.textContent = "仅显示前 " + LIMIT + " 条，导出不受影响。";
+    elMapList.appendChild(more);
+  }
+}
+
+// —— 导出 ——
+function canvasToBlob(cv, type, quality){
+  return new Promise(res => cv.toBlob(b => res(b), type, quality));
+}
+function downloadBlob(blob, filename){
+  const a = document.createElement("a");
+  const u = URL.createObjectURL(blob);
+  a.href = u; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(u); a.remove(); }, 1500);
+}
+
+async function exportOne(){
+  if(!state.data.length) return;
+  const row = state.data[state.current];
+  const st = readStyle();
+  showOverlay("正在导出…", "");
+  try{
+    if(state.fmt === "svg"){
+      const svg = renderSVG(row, st);
+      downloadBlob(new Blob([svg], { type: "image/svg+xml" }), fileNameFor(row, state.current));
+    }else{
+      const r = renderCanvas(row, st, 3); // 3x 高清
+      const blob = await canvasToBlob(r.canvas, state.fmt === "jpg" ? "image/jpeg" : "image/png", 0.95);
+      downloadBlob(blob, fileNameFor(row, state.current));
+    }
+    setOverlay("导出完成", "", 100);
+    await sleep(300);
+  }catch(e){
+    setOverlay("导出失败", e.message, 0);
+    await sleep(1500);
+  }
+  hideOverlay();
+}
+
+async function exportZip(){
+  if(!state.data.length){ alert("还没有数据"); return; }
+  const st = readStyle();
+  const entries = [];
+  const total = state.data.length;
+  showOverlay("正在生成…", "", 0);
+
+  const CHUNK = 20;
+  for(let i = 0; i < total; i++){
+    const row = state.data[i];
+    if(!row.content) continue; // 跳过无内容的行
+    try{
+      if(state.fmt === "svg"){
+        const svg = renderSVG(row, st);
+        entries.push({ name: fileNameFor(row, i), data: new TextEncoder().encode(svg) });
+      }else{
+        const r = renderCanvas(row, st, 3);
+        const blob = await canvasToBlob(r.canvas, state.fmt === "jpg" ? "image/jpeg" : "image/png", 0.95);
+        entries.push({ name: fileNameFor(row, i), data: new Uint8Array(await blob.arrayBuffer()) });
+      }
+    }catch(e){
+      console.warn("第 " + (i+1) + " 条生成失败：", row.content, e);
+    }
+    if(i % CHUNK === 0){
+      setOverlay("正在生成…", (i + 1) + " / " + total, Math.round((i + 1) / total * 85));
+      await sleep(0);
+    }
+  }
+
+  if(!entries.length){ hideOverlay(); alert("没有成功生成任何二维码，请检查数据"); return; }
+
+  setOverlay("正在打包 ZIP…", entries.length + " 个文件", 92);
+  await sleep(0);
+  const zipBlob = await buildZip(entries);
+  const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  downloadBlob(zipBlob, "qrcodes_" + stamp + ".zip");
+  setOverlay("导出完成", entries.length + " 张二维码已打包", 100);
+  await sleep(600);
+  hideOverlay();
+}
+
+// —— 模板文件下载 ——
+// 只提供 CSV：通用性最好，Excel / WPS / 表格软件都能直接打开填写
+const TEMPLATE_ROWS = [
+  ["名称", "内容"],
+  ["门店A-桌贴", "https://example.com/a"],
+  ["门店B-海报", "https://example.com/b"],
+  ["物料M001", "商品编号 A-001"]
+];
+
+function downloadTemplate(){
+  // 每格做 CSV 引号转义，保证含逗号/引号/换行的内容也不破坏结构
+  const csv = TEMPLATE_ROWS
+    .map(r => r.map(v => csvQuote(v)).join(","))
+    .join("\r\n");
+  // 加 BOM，避免 Excel 打开中文乱码
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  downloadBlob(blob, "二维码批量生成-导入模板.csv");
+}
+
+// —— 文本处理工具 ——
+// 直接改写文本域内容，保证与用户所见一致（两列格式）
+function setRowsToText(rows){
+  // 名称与内容都要做 CSV 转义，否则名称里含逗号会破坏两列结构（与 parseTextRows 的 splitCsvLine 对称）
+  elDataInput.value = rows.map(r => r.name ? (csvQuote(r.name) + "," + csvQuote(r.content)) : csvQuote(r.content)).join("\n");
+}
+function csvQuote(s){
+  s = String(s);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function applyToRows(fn){
+  setRowsToText(fn(state.data.slice()));
+  state.current = 0;
+  refreshData();
+}
+
+// —— LOGO ——
+function loadLogo(file){
+  const img = new Image();
+  img.onload = () => {
+    state.logoImg = img;
+    elLogoPrev.innerHTML = "";
+    const im = document.createElement("img");
+    im.src = img.src;
+    elLogoPrev.appendChild(im);
+    updatePreview();
+  };
+  img.onerror = () => alert("LOGO 图片读取失败");
+  img.src = URL.createObjectURL(file);
+}
+
+/* ============ 事件绑定 ============ */
+// 数据
+elDataInput.addEventListener("input", debounce(refreshData, 300));
+
+$("btnClear").addEventListener("click", () => {
+  if(!state.data.length) return;
+  if(confirm("确定清空全部数据？")){ elDataInput.value = ""; state.current = 0; refreshData(); }
+});
+$("btnCopy").addEventListener("click", async () => {
+  try{ await navigator.clipboard.writeText(elDataInput.value); }catch(e){}
+});
+$("btnImportXlsx").addEventListener("click", () => $("fileXlsx").click());
+$("btnTemplate").addEventListener("click", downloadTemplate);
+$("fileXlsx").addEventListener("change", async e => {
+  const f = e.target.files[0]; if(!f) return;
+  e.target.value = "";
+  try{
+    let rows;
+    if(/\.xlsx$/i.test(f.name)) rows = await readXlsxRows(f, true);
+    else if(/\.xls$/i.test(f.name)) throw new Error("旧版 .xls 不支持，请另存为 .xlsx 或 .csv");
+    else rows = parseCsvRows(await f.text());
+    if(!rows.length) throw new Error("未读到数据（已按首行表头跳过）。请确认格式为两列：第一列名称、第二列内容。");
+    const noContent = rows.filter(r => !r.content).length;
+    setRowsToText(rows);
+    state.current = 0;
+    refreshData();
+    if(noContent > 0) alert("导入完成，但有 " + noContent + " 行的「内容」列为空，这些行不会被生成。");
+  }catch(err){
+    alert("导入失败：" + err.message);
+  }
+});
+$("btnTrim").addEventListener("click", () => applyToRows(a => a.map(r => ({ name: r.name.trim(), content: r.content.trim() }))));
+$("btnDedup").addEventListener("click", () => {
+  const seen = new Set(); const out = [];
+  for(const r of state.data){ if(seen.has(r.content)) continue; seen.add(r.content); out.push(r); }
+  setRowsToText(out); state.current = 0; refreshData();
+});
+$("btnDropEmpty").addEventListener("click", () => applyToRows(a => a.filter(r => r.content.trim() !== "")));
+$("btnReplace").addEventListener("click", () => {
+  const find = $("findText").value;
+  if(!find) return;
+  const repl = $("replText").value;
+  applyToRows(a => a.map(r => ({ name: r.name, content: r.content.split(find).join(repl) })));
+});
+
+// 命名
+elNameMode.addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  state.nameMode = b.dataset.v;
+  Array.from(elNameMode.children).forEach(x => x.classList.toggle("on", x === b));
+  elNameCustomWrap.hidden = state.nameMode !== "custom";
+  renderList();
+});
+$("nameCustom").addEventListener("input", renderList);
+
+// 样式
+[elSizePx, elQuietZone, elFgColor, elBgColor, elEcc, elDotStyle, elTextSize].forEach(el => {
+  el.addEventListener("input", () => { updateStats(); updatePreview(); });
+  el.addEventListener("change", () => { updateStats(); updatePreview(); });
+});
+elLogoRatio.addEventListener("input", () => { elLogoRatioOut.textContent = elLogoRatio.value + "%"; });
+elLogoRatio.addEventListener("change", updatePreview);
+elLogoPad.addEventListener("change", updatePreview);
+$("btnLogo").addEventListener("click", () => $("fileLogo").click());
+$("fileLogo").addEventListener("change", e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if(f) loadLogo(f);
+});
+$("btnLogoClear").addEventListener("click", () => {
+  state.logoImg = null;
+  elLogoPrev.textContent = "无 LOGO";
+  updatePreview();
+});
+
+// 文字
+elTextFixed.addEventListener("input", debounce(updatePreview, 200));
+$("textPos").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  state.textPos = b.dataset.v;
+  Array.from($("textPos").children).forEach(x => x.classList.toggle("on", x === b));
+  updatePreview();
+});
+elTextSrc.addEventListener("change", () => {
+  elTextFixedWrap.hidden = elTextSrc.value !== "fixed";
+  updatePreview();
+});
+
+// 格式
+$("fmt").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  state.fmt = b.dataset.v;
+  Array.from($("fmt").children).forEach(x => x.classList.toggle("on", x === b));
+  const hints = {
+    png: "PNG：无损、支持透明背景，最通用。",
+    jpg: "JPG：体积小，不支持透明背景（透明会变白）。",
+    svg: "SVG：矢量格式，可无限放大，适合印刷；不支持 LOGO 与展示文字。"
+  };
+  elFmtHint.textContent = hints[state.fmt];
+  renderList();
+});
+
+// 预览导航
+$("btnPrev").addEventListener("click", () => {
+  if(!state.data.length) return;
+  state.current = (state.current - 1 + state.data.length) % state.data.length;
+  updatePreview(); renderList();
+});
+$("btnNext").addEventListener("click", () => {
+  if(!state.data.length) return;
+  state.current = (state.current + 1) % state.data.length;
+  updatePreview(); renderList();
+});
+$("btnPreview").addEventListener("click", updatePreview);
+
+// 导出
+$("btnExportOne").addEventListener("click", exportOne);
+$("btnExportZip").addEventListener("click", exportZip);
+
+window.addEventListener("resize", debounce(() => updatePreview(), 200));
+// 拦截意外关闭
+window.addEventListener("beforeunload", e => {
+  if(state.data.length > 5){ e.preventDefault(); e.returnValue = ""; }
+});
+
+/* ============ 通用 ============ */
+function debounce(fn, ms){
+  let t; return function(){ clearTimeout(t); t = setTimeout(() => fn.apply(this, arguments), ms); };
+}
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+function showOverlay(t, s){ elOvTitle.textContent = t; elOvSub.textContent = s || ""; elOvBar.style.width = "0%"; elOverlay.classList.add("show"); }
+function setOverlay(t, s, p){ elOvTitle.textContent = t; if(s !== undefined) elOvSub.textContent = s; if(p !== undefined) elOvBar.style.width = p + "%"; }
+function hideOverlay(){ elOverlay.classList.remove("show"); }
+
+// 示例数据 + 自检
+(function init(){
+  // 自检：生成一个测试二维码，确认内核工作
+  try{
+    const t = generateQR("https://example.com/", "M");
+    console.log("[自检] QR 内核正常，版本 " + t.version + "，尺寸 " + t.size);
+  }catch(e){
+    console.error("[自检] QR 内核异常：", e);
+  }
+  refreshData();
+  updatePreview();
+})();
+
+})();
+</script>
+</body>
+</html>

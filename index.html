@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>批量二维码生成工具 · Batch QR Code</title>
+<meta name="description" content="单文件、零依赖、纯前端的批量二维码生成工具。表格进，二维码出，全程本地不联网。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%232f6bff'/><g fill='%23fff'><rect x='16' y='16' width='26' height='26' rx='4'/><rect x='58' y='16' width='26' height='26' rx='4'/><rect x='16' y='58' width='26' height='26' rx='4'/><rect x='58' y='58' width='10' height='10' rx='2'/><rect x='74' y='74' width='10' height='10' rx='2'/></g></svg>">
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#fff; --line:#e3e6ec; --text:#1f2430; --sub:#6b7280;
+    --accent:#2f6bff; --accent-dark:#1f4fd8; --ok:#16a34a; --warn:#d97706;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Segoe UI","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:15px; line-height:1.8;
+  }
+  .page{max-width:900px;margin:0 auto;padding:36px 24px 80px;}
+
+  .hero{
+    background:linear-gradient(135deg,#2f6bff,#5b8cff);
+    color:#fff;border-radius:18px;padding:40px 36px;margin-bottom:26px;
+    box-shadow:0 14px 36px rgba(47,107,255,.24);
+  }
+  .hero .tag{
+    display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+    border-radius:20px;padding:3px 13px;font-size:12.5px;margin-bottom:14px;letter-spacing:.3px;
+  }
+  .hero h1{margin:0 0 10px;font-size:29px;line-height:1.3;letter-spacing:.5px;}
+  .hero .sub{opacity:.94;font-size:15px;max-width:600px;}
+  .hero .badges{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px;}
+  .hero .badges span{
+    background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);
+    border-radius:8px;padding:3px 11px;font-size:12.5px;
+  }
+
+  /* 主入口按钮 */
+  .launch{
+    display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+    background:var(--panel);border:2px solid var(--accent);border-radius:16px;
+    padding:24px 28px;margin-bottom:22px;
+    box-shadow:0 8px 26px rgba(47,107,255,.14);
+  }
+  .launch .txt{flex:1;min-width:220px;}
+  .launch .txt h2{margin:0 0 4px;font-size:19px;}
+  .launch .txt p{margin:0;color:var(--sub);font-size:13.8px;}
+  .btn{
+    display:inline-block;background:var(--accent);color:#fff;text-decoration:none;
+    border-radius:10px;padding:12px 26px;font-size:15.5px;font-weight:600;white-space:nowrap;
+    transition:background .15s, transform .1s;
+    box-shadow:0 4px 14px rgba(47,107,255,.3);
+  }
+  .btn:hover{background:var(--accent-dark);}
+  .btn:active{transform:translateY(1px);}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;}
+  @media(max-width:640px){.grid{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:22px 24px;margin-bottom:0;
+  }
+  .card h3{margin:0 0 6px;font-size:16.5px;display:flex;align-items:center;gap:9px;}
+  .card h3 .ico{
+    width:28px;height:28px;border-radius:8px;background:#eef3ff;color:var(--accent-dark);
+    display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:none;
+  }
+  .card p{margin:0 0 12px;color:var(--sub);font-size:13.8px;min-height:44px;}
+  .link{
+    display:inline-block;color:var(--accent);text-decoration:none;font-weight:600;font-size:14px;
+    border:1px solid #cfe0ff;background:#f0f7ff;border-radius:8px;padding:7px 16px;
+  }
+  .link:hover{background:#e4efff;}
+
+  .full{grid-column:1 / -1;}
+  .full p{min-height:0;}
+
+  h2.sec{
+    font-size:17px;margin:30px 0 14px;padding-bottom:9px;
+    border-bottom:2px solid #eef2ff;display:flex;align-items:center;gap:9px;
+  }
+  h2.sec .n{
+    width:24px;height:24px;border-radius:7px;background:var(--accent-dark);color:#fff;
+    display:inline-flex;align-items:center;justify-content:center;font-size:12.5px;flex:none;
+  }
+
+  .demo{width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#fff;}
+
+  ul.feat{margin:10px 0 0;padding-left:22px;color:var(--text);font-size:14px;}
+  ul.feat li{margin:5px 0;}
+
+  .tip{
+    background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid var(--ok);
+    border-radius:10px;padding:13px 17px;margin:14px 0;font-size:14px;
+  }
+  .note{
+    background:#fffbeb;border:1px solid #fde68a;border-left:4px solid var(--warn);
+    border-radius:10px;padding:13px 17px;margin:14px 0;font-size:14px;
+  }
+  code{
+    background:#f3f5f9;border:1px solid var(--line);border-radius:5px;
+    padding:1px 6px;font-family:Consolas,"Courier New",monospace;font-size:13.5px;color:#b8295b;
+  }
+
+  .footer{
+    margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
+    text-align:center;font-size:13px;color:var(--sub);line-height:2;
+  }
+  .footer a{color:var(--accent);text-decoration:none;}
+  .footer a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <div class="tag">单文件 · 零依赖 · 纯前端</div>
+    <h1>批量二维码生成工具</h1>
+    <div class="sub">一张表格进去，一堆带样式的二维码出来 —— 全程在你自己的浏览器里完成，不联网、不上传。</div>
+    <div class="badges">
+      <span>✓ 两列数据 / Excel 导入</span>
+      <span>✓ LOGO · 展示文字</span>
+      <span>✓ PNG / JPG / SVG</span>
+      <span>✓ 一键打包 ZIP</span>
+      <span>✓ 断网可用</span>
+    </div>
+  </div>
+
+  <!-- 主入口 -->
+  <div class="launch">
+    <div class="txt">
+      <h2>▶ 立即打开工具</h2>
+      <p>点右侧按钮，直接在浏览器里开始用。无需下载、无需安装、无需注册。</p>
+    </div>
+    <a class="btn" href="app.html">打开批量生成工具 →</a>
+  </div>
+
+  <!-- 手册 -->
+  <div class="grid">
+    <div class="card">
+      <h3><span class="ico">📘</span>用户手册</h3>
+      <p>从零开始的图文操作指南：界面导览、数据怎么写、样式怎么调、LOGO 怎么加、扫不出来怎么办。</p>
+      <a class="link" href="user-guide.html">阅读用户手册 →</a>
+    </div>
+    <div class="card">
+      <h3><span class="ico">🧩</span>开发者手册</h3>
+      <p>源码级技术文档：QR 生成内核、数据解析、渲染管线、ZIP 打包、性能分析与扩展指南。</p>
+      <a class="link" href="dev-guide.html">阅读开发者手册 →</a>
+    </div>
+  </div>
+
+  <!-- 示意图 -->
+  <h2 class="sec"><span class="n">1</span>它是怎么工作的</h2>
+  <img class="demo" src="docs/workflow.svg" alt="二维码批量生成工具工作原理示意图">
+
+  <!-- 功能 -->
+  <h2 class="sec"><span class="n">2</span>能做什么</h2>
+  <div class="card full">
+    <ul class="feat">
+      <li><b>两列数据</b> —— 第一列「图片名称」（也是文件名与可选显示文字），第二列「二维码内容」；名称为空时自动编号</li>
+      <li><b>多种导入</b> —— 手动粘贴，或导入 <code>.xlsx</code> / <code>.csv</code> / <code>.txt</code>；提供规范 CSV 模板一键下载</li>
+      <li><b>数据整理</b> —— 查找替换、去首尾空格、去除重复行、删除空行；实时统计重复 / 超长 / 缺内容</li>
+      <li><b>样式可调</b> —— 尺寸、静区边距、前景/背景色、四档容错率（L/M/Q/H）、方形 / 圆点 / 圆角样式</li>
+      <li><b>LOGO 支持</b> —— 上传 LOGO，占比 10%–25%，可选白色留白衬底</li>
+      <li><b>展示文字</b> —— 二维码上方或下方印文字，来源可选名称 / 内容 / 固定文案</li>
+      <li><b>多格式导出</b> —— PNG（可透明）/ JPG / SVG（纯矢量）</li>
+      <li><b>批量打包</b> —— 一键导出为 ZIP；自研 PKZIP 实现，零第三方库</li>
+    </ul>
+  </div>
+
+  <!-- 用法 -->
+  <h2 class="sec"><span class="n">3</span>三种使用方式</h2>
+  <div class="grid">
+    <div class="card">
+      <h3><span class="ico">①</span>在线直接用</h3>
+      <p>点上面的「打开批量生成工具」，浏览器里立刻可用。数据只在你本机处理，不会上传。</p>
+    </div>
+    <div class="card">
+      <h3><span class="ico">②</span>下载后双击</h3>
+      <p>下载 <code>app.html</code> 到本地，<b>双击</b>用 Chrome / Edge 打开即可，断网也能用。</p>
+    </div>
+    <div class="card full">
+      <h3><span class="ico">③</span>嵌入自己的网页</h3>
+      <p>把 <code>app.html</code> 放到任意静态目录即可，它不依赖任何外部资源（无 CDN、无接口）。也可以直接用 iframe 嵌入：</p>
+      <p style="min-height:0;"><code>&lt;iframe src="app.html" width="100%" height="800"&gt;&lt;/iframe&gt;</code></p>
+    </div>
+  </div>
+
+  <div class="tip">
+    <b>隐私保证：</b> 整个工具就是一个 HTML 文件，所有处理都在你的浏览器里完成，<b>不存在任何网络请求</b>，数据不离开你的电脑。可以拔掉网线验证。
+  </div>
+
+  <div class="note">
+    <b>浏览器要求：</b> Chrome / Edge 103+、Safari 16.4+、Firefox 113+。老版本浏览器下 ZIP 会回退为不压缩模式（仍可解压），xlsx 导入不可用。
+  </div>
+
+  <div class="footer">
+    批量二维码生成工具 · <b>batch-qrcode-html</b> &nbsp;·&nbsp; Powered by Yulai @2026<br>
+    E-mail：<a href="mailto:liyulai@qq.com">liyulai@qq.com</a> &nbsp;·&nbsp;
+    GitHub：<a href="https://github.com/Locallabstide">@Locallabstide</a>
+  </div>
+
+</div>
+</body>
+</html>
